@@ -1,0 +1,69 @@
+{
+  "name": "lyra-language",
+  "displayName": "Lyra Language Support",
+  "description": "Syntax highlighting and language support for the Lyra programming language",
+  "version": "1.0.0",
+  "publisher": "lyra",
+  "icon": "images/icon.png",
+  "engines": {
+    "vscode": "^1.50.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "contributes": {
+    "languages": [
+      {
+        "id": "lyra",
+        "aliases": [
+          "Lyra",
+          "lyra"
+        ],
+        "extensions": [
+          ".lyra"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "lyra",
+        "scopeName": "source.lyra",
+        "path": "./syntaxes/lyra.tmLanguage.json"
+      }
+    ],
+    "themes": [
+      {
+        "label": "Lyra Light",
+        "uiTheme": "vs",
+        "path": "./themes/lyra-light-color-theme.json"
+      },
+      {
+        "label": "Lyra Dark",
+        "uiTheme": "vs-dark",
+        "path": "./themes/lyra-dark-color-theme.json"
+      }
+    ],
+    "snippets": [
+      {
+        "language": "lyra",
+        "path": "./snippets/lyra.json"
+      }
+    ]
+  },
+  "repository": {
+    "url": "https://github.com/lyra-lang/lyra",
+    "type": "git"
+  },
+  "bugs": {
+    "url": "https://github.com/lyra-lang/lyra/issues"
+  },
+  "keywords": [
+    "lyra",
+    "programming",
+    "language",
+    "interpreter"
+  ],
+  "author": "Lyra Development Team",
+  "license": "MIT"
+}

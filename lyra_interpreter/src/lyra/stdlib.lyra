@@ -1,0 +1,313 @@
+// Lyra Standard Library - Expanded
+// 35+ utility functions for common programming tasks
+
+proc abs(x: i32) -> i32 {
+    if x < 0 { 0 - x } else { x }
+}
+
+proc max(a: i32, b: i32) -> i32 {
+    if a > b { a } else { b }
+}
+
+proc min(a: i32, b: i32) -> i32 {
+    if a < b { a } else { b }
+}
+
+proc maxList(nums: [i32]) -> i32 {
+    if nums.len() == 0 { 0 } else { nums.max() }
+}
+
+proc minList(nums: [i32]) -> i32 {
+    if nums.len() == 0 { 0 } else { nums.min() }
+}
+
+proc sumList(nums: [i32]) -> i32 {
+    var total: i32 = 0
+    var i: i32 = 0
+    while i < nums.len() {
+        total = total + nums[i]
+        i = i + 1
+    }
+    total
+}
+
+proc avgList(nums: [i32]) -> f64 {
+    if nums.len() == 0 { 0.0 }
+    else { sumList(nums).to_f64() / nums.len().to_f64() }
+}
+
+proc containsList(nums: [i32], target: i32) -> bool {
+    var i: i32 = 0
+    var found: bool = false
+    while i < nums.len() && !found {
+        if nums[i] == target { found = true }
+        i = i + 1
+    }
+    found
+}
+
+proc filterEvens(nums: [i32]) -> [i32] {
+    var result: [i32] = []
+    var i: i32 = 0
+    while i < nums.len() {
+        if nums[i] % 2 == 0 { result.push(nums[i]) }
+        i = i + 1
+    }
+    result
+}
+
+proc filterOdds(nums: [i32]) -> [i32] {
+    var result: [i32] = []
+    var i: i32 = 0
+    while i < nums.len() {
+        if nums[i] % 2 != 0 { result.push(nums[i]) }
+        i = i + 1
+    }
+    result
+}
+
+proc isEven(n: i32) -> bool {
+    n % 2 == 0
+}
+
+proc isOdd(n: i32) -> bool {
+    n % 2 != 0
+}
+
+proc isPrime(n: i32) -> bool {
+    if n < 2 { false }
+    else {
+        if n == 2 { true }
+        else {
+            if n % 2 == 0 { false }
+            else {
+                var i: i32 = 3
+                var found: bool = false
+                while i * i <= n && !found {
+                    if n % i == 0 { found = true }
+                    i = i + 2
+                }
+                !found
+            }
+        }
+    }
+}
+
+proc power(base: i32, exp: i32) -> i32 {
+    if exp == 0 { 1 }
+    else {
+        var result: i32 = 1
+        var i: i32 = 0
+        while i < exp {
+            result = result * base
+            i = i + 1
+        }
+        result
+    }
+}
+
+proc factorial(n: i32) -> i32 {
+    if n <= 1 { 1 }
+    else { n * factorial(n - 1) }
+}
+
+proc isPositive(n: i32) -> bool {
+    n > 0
+}
+
+proc isNegative(n: i32) -> bool {
+    n < 0
+}
+
+proc isZero(n: i32) -> bool {
+    n == 0
+}
+
+proc clamp(value: i32, minVal: i32, maxVal: i32) -> i32 {
+    if value < minVal { minVal }
+    else {
+        if value > maxVal { maxVal }
+        else { value }
+    }
+}
+
+proc stringLength(s: str) -> i32 {
+    s.strlen()
+}
+
+proc stringUpper(s: str) -> str {
+    s.to_upper()
+}
+
+proc stringLower(s: str) -> str {
+    s.to_lower()
+}
+
+proc stringHas(s: str, sub: str) -> bool {
+    s.strhas(sub)
+}
+
+proc stringConcat(a: str, b: str) -> str {
+    a + b
+}
+
+proc length(list: [i32]) -> i32 {
+    list.len()
+}
+
+proc joinList(items: [i32], sep: str) -> str {
+    if items.len() == 0 { "" }
+    else {
+        var result: str = items[0].to_str()
+        var i: i32 = 1
+        while i < items.len() {
+            result = result + sep + items[i].to_str()
+            i = i + 1
+        }
+        result
+    }
+}
+
+// =====================================
+// LEXER SUPPORT: String Operations
+// =====================================
+
+proc charAt(s: str, index: i32) -> str {
+    // Returns character at index as single-char string
+    if index < 0 || index >= s.strlen() { "" }
+    else { s.substr(index, 1) }
+}
+
+proc peekChar(s: str, index: i32, offset: i32) -> str {
+    // Peek ahead by offset from index
+    var pos: i32 = index + offset
+    if pos < 0 || pos >= s.strlen() { "" }
+    else { s.substr(pos, 1) }
+}
+
+proc substring(s: str, start: i32, length: i32) -> str {
+    // Extract substring from position start with given length
+    if start < 0 { "" }
+    else {
+        if start + length > s.strlen() { s.substr(start, s.strlen() - start) }
+        else { s.substr(start, length) }
+    }
+}
+
+proc isDigit(c: str) -> bool {
+    // Check if character is 0-9
+    if c.strlen() != 1 { false }
+    else {
+        var ch: str = c
+        ch == "0" || ch == "1" || ch == "2" || ch == "3" || ch == "4" ||
+        ch == "5" || ch == "6" || ch == "7" || ch == "8" || ch == "9"
+    }
+}
+
+proc isLetter(c: str) -> bool {
+    // Check if character is a-z or A-Z
+    if c.strlen() != 1 { false }
+    else {
+        var ch: str = c
+        (ch >= "a" && ch <= "z") || (ch >= "A" && ch <= "Z")
+    }
+}
+
+proc isAlphaNumeric(c: str) -> bool {
+    // Check if character is letter or digit
+    isDigit(c) || isLetter(c)
+}
+
+proc isWhitespace(c: str) -> bool {
+    // Check if character is space, tab, newline, carriage return
+    if c.strlen() != 1 { false }
+    else {
+        var ch: str = c
+        ch == " " || ch == "\t" || ch == "\n" || ch == "\r"
+    }
+}
+
+proc isOperator(c: str) -> bool {
+    // Check if character is +, -, *, /, =, <, >, !, &, |, ^, %, etc
+    if c.strlen() != 1 { false }
+    else {
+        var ch: str = c
+        ch == "+" || ch == "-" || ch == "*" || ch == "/" || ch == "=" ||
+        ch == "<" || ch == ">" || ch == "!" || ch == "&" || ch == "|" ||
+        ch == "^" || ch == "%" || ch == "?" || ch == ":" || ch == "~"
+    }
+}
+
+proc isBracket(c: str) -> bool {
+    // Check if character is bracket/paren
+    if c.strlen() != 1 { false }
+    else {
+        var ch: str = c
+        ch == "(" || ch == ")" || ch == "[" || ch == "]" || 
+        ch == "{" || ch == "}" || ch == "," || ch == ";"
+    }
+}
+
+proc startsWith(s: str, prefix: str) -> bool {
+    // Check if string starts with prefix
+    if prefix.strlen() > s.strlen() { false }
+    else { s.substr(0, prefix.strlen()) == prefix }
+}
+
+proc endsWith(s: str, suffix: str) -> bool {
+    // Check if string ends with suffix
+    if suffix.strlen() > s.strlen() { false }
+    else {
+        var start: i32 = s.strlen() - suffix.strlen()
+        s.substr(start, suffix.strlen()) == suffix
+    }
+}
+
+proc trim(s: str) -> str {
+    // Remove leading/trailing whitespace
+    var start: i32 = 0
+    var end: i32 = s.strlen() - 1
+    
+    // Find start
+    while start <= end && isWhitespace(s.substr(start, 1)) {
+        start = start + 1
+    }
+    
+    // Find end
+    while end >= start && isWhitespace(s.substr(end, 1)) {
+        end = end - 1
+    }
+    
+    if start > end { "" }
+    else { s.substr(start, end - start + 1) }
+}
+
+proc charCodeAt(s: str, index: i32) -> i32 {
+    // Get numeric code of character (simplified - uses position 0-127)
+    if index < 0 || index >= s.strlen() { 0 }
+    else { 65 } // Placeholder: should return actual char code
+}
+
+proc showStdlibDemo() {
+    io.println("")
+    io.println("=== Lyra Standard Library Demo ===")
+    io.println("")
+    io.println("Math Functions:")
+    io.println("  abs(-5) = " + abs(-5).to_str())
+    io.println("  max(3,7) = " + max(3,7).to_str())
+    io.println("  power(2,3) = " + power(2,3).to_str())
+    io.println("  factorial(5) = " + factorial(5).to_str())
+    io.println("")
+    
+    var nums: [i32] = [1,2,3,4,5,6]
+    io.println("List: [1,2,3,4,5,6]")
+    io.println("  sum = " + sumList(nums).to_str())
+    io.println("  max = " + maxList(nums).to_str())
+    io.println("  evens = " + joinList(filterEvens(nums), ","))
+    io.println("")
+    
+    io.println("String Functions:")
+    io.println("  upper(hello) = " + stringUpper("hello"))
+    io.println("  length(hello) = " + stringLength("hello").to_str())
+    io.println("")
+}

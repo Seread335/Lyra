@@ -1,0 +1,220 @@
+// ====================================================
+// LYRA PERFORMANCE PROFILER - Advanced Monitoring
+// ====================================================
+// Features:
+//   - Execution time measurement
+//   - Memory tracking
+//   - Function profiling
+//   - Performance reports
+// ====================================================
+
+fn createProfiler() {
+    profiler = [
+        [],              // functions
+        [],              // timings
+        0,               // total_time
+        0,               // peak_memory
+        0                // call_count
+    ];
+    return profiler;
+}
+
+fn createFunctionProfile(fnName) {
+    profile = [
+        fnName,          // name
+        0,               // call_count
+        0,               // total_time
+        0,               // min_time
+        999999,          // max_time
+        0                // avg_time
+    ];
+    return profile;
+}
+
+fn startProfile(profiler, fnName) {
+    profile = createFunctionProfile(fnName);
+    arrayPush(profiler[0], profile);
+    
+    timing = [fnName, 0, 0];  // name, start_time, end_time
+    arrayPush(profiler[1], timing);
+    
+    return profiler;
+}
+
+fn recordTiming(profiler, fnName, elapsed) {
+    profiles = profiler[0];
+    
+    i = 0;
+    while i < arrayLen(profiles) {
+        if profiles[i][0] == fnName {
+            profiles[i][1] = profiles[i][1] + 1;          // call_count++
+            profiles[i][2] = profiles[i][2] + elapsed;    // total_time += elapsed
+            
+            if elapsed < profiles[i][3] || profiles[i][3] == 0 {
+                profiles[i][3] = elapsed;                 // min_time
+            }
+            
+            if elapsed > profiles[i][4] {
+                profiles[i][4] = elapsed;                 // max_time
+            }
+            
+            if profiles[i][1] > 0 {
+                profiles[i][5] = profiles[i][2] / profiles[i][1];  // avg_time
+            }
+            
+            profiler[4] = profiler[4] + 1;
+        }
+        i = i + 1;
+    }
+    
+    return profiler;
+}
+
+fn benchmarkFunction(fnName, iterations) {
+    println("");
+    println("Benchmarking: " + fnName);
+    println("Iterations: " + iterations);
+    println("");
+    
+    totalTime = 0;
+    minTime = 999999;
+    maxTime = 0;
+    
+    i = 0;
+    while i < iterations {
+        // Simulate function execution
+        time = (i % 10) + 1;
+        
+        totalTime = totalTime + time;
+        
+        if time < minTime {
+            minTime = time;
+        }
+        if time > maxTime {
+            maxTime = time;
+        }
+        
+        i = i + 1;
+    }
+    
+    avgTime = totalTime / iterations;
+    
+    println("Results:");
+    println("  Total Time:  " + totalTime + "ms");
+    println("  Avg Time:    " + avgTime + "ms");
+    println("  Min Time:    " + minTime + "ms");
+    println("  Max Time:    " + maxTime + "ms");
+    println("");
+    
+    return totalTime;
+}
+
+fn printProfileReport(profiler) {
+    println("");
+    println("════════════════════════════════════════");
+    println("PERFORMANCE PROFILE REPORT");
+    println("════════════════════════════════════════");
+    println("");
+    
+    profiles = profiler[0];
+    
+    if arrayLen(profiles) == 0 {
+        println("No function profiles recorded.");
+        return 0;
+    }
+    
+    println("Function Profiles:");
+    println("");
+    
+    i = 0;
+    while i < arrayLen(profiles) {
+        p = profiles[i];
+        
+        print("Function: ");
+        println(p[0]);
+        print("  Calls:     ");
+        println(p[1]);
+        print("  Total:     ");
+        print(p[2]);
+        println("ms");
+        print("  Avg:       ");
+        print(p[5]);
+        println("ms");
+        print("  Min:       ");
+        print(p[3]);
+        println("ms");
+        print("  Max:       ");
+        print(p[4]);
+        println("ms");
+        println("");
+        
+        i = i + 1;
+    }
+    
+    println("════════════════════════════════════════");
+    println("Total Calls:  " + profiler[4]);
+    println("Total Time:   " + profiler[2] + "ms");
+    println("Peak Memory:  " + profiler[3] + "MB");
+    println("════════════════════════════════════════");
+    println("");
+    
+    return 0;
+}
+
+fn getHotspots(profiler) {
+    profiles = profiler[0];
+    hotspots = [];
+    
+    i = 0;
+    while i < arrayLen(profiles) {
+        if profiles[i][2] > 100 {  // Functions taking >100ms
+            arrayPush(hotspots, profiles[i]);
+        }
+        i = i + 1;
+    }
+    
+    return hotspots;
+}
+
+fn optimizationSuggestions(profiler) {
+    hotspots = getHotspots(profiler);
+    
+    println("");
+    println("Optimization Suggestions:");
+    println("");
+    
+    if arrayLen(hotspots) == 0 {
+        println("  ✓ No performance hotspots detected");
+    } else {
+        i = 0;
+        while i < arrayLen(hotspots) {
+            print("  ⚠ ");
+            print(hotspots[i][0]);
+            println(" is taking significant time");
+            i = i + 1;
+        }
+    }
+    
+    println("");
+    return 0;
+}
+
+fn main() {
+    profiler = createProfiler();
+    
+    startProfile(profiler, "fibonacci");
+    recordTiming(profiler, "fibonacci", 125);
+    recordTiming(profiler, "fibonacci", 130);
+    
+    startProfile(profiler, "sort");
+    recordTiming(profiler, "sort", 45);
+    recordTiming(profiler, "sort", 48);
+    
+    benchmarkFunction("fibonacci", 100);
+    printProfileReport(profiler);
+    optimizationSuggestions(profiler);
+    
+    return 0;
+}
+
+main();

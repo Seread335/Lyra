@@ -1,0 +1,13 @@
+// Example 2: Fibonacci
+proc fibonacci(n: i32) -> i32 {
+    if n <= 1 {
+        n
+    } else {
+        fibonacci(n - 1) + fibonacci(n - 2)
+    }
+}
+
+proc main() {
+    var fib_10: i32 = fibonacci(10)
+    io.println(fib_10)
+}

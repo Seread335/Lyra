@@ -1,0 +1,254 @@
+// Advanced Runtime Features for Lyra
+// ===================================
+// Reflection, dynamic dispatch, lazy evaluation
+
+// Runtime type information
+var rtinfo_types: [str]
+var rtinfo_type_names: [str]
+var rtinfo_type_count: i32 = 0
+
+// Lazy evaluation support
+var lazy_expr_cache: [str]
+var lazy_expr_values: [str]
+var lazy_cache_hits: i32 = 0
+
+// Dynamic dispatch table
+var dispatch_methods: [str]
+var dispatch_implementations: [str]
+var dispatch_count: i32 = 0
+
+// Register runtime type
+proc registerType(type_id: i32, type_name: str) {
+    if rtinfo_type_count >= 100 return
+    
+    insert(rtinfo_types, tostring(type_id))
+    insert(rtinfo_type_names, type_name)
+    rtinfo_type_count = rtinfo_type_count + 1
+}
+
+// Get runtime type info
+proc getTypeInfo(type_id: i32) -> str {
+    var i = 0
+    while i < rtinfo_type_count {
+        if toint(rtinfo_types[i]) == type_id {
+            return rtinfo_type_names[i]
+        }
+        i = i + 1
+    }
+    return "unknown"
+}
+
+// Lazy evaluation - delay computation
+proc lazyEval(expr: str) -> str {
+    // Check cache first
+    var i = 0
+    while i < length(lazy_expr_cache) {
+        if lazy_expr_cache[i] == expr {
+            lazy_cache_hits = lazy_cache_hits + 1
+            return lazy_expr_values[i]
+        }
+        i = i + 1
+    }
+    
+    // Would compute and cache the value
+    insert(lazy_expr_cache, expr)
+    insert(lazy_expr_values, "")  // Computed value
+    
+    return ""
+}
+
+// Dynamic method dispatch
+proc registerMethod(method_name: str, implementation: str) {
+    insert(dispatch_methods, method_name)
+    insert(dispatch_implementations, implementation)
+    dispatch_count = dispatch_count + 1
+}
+
+// Call dynamically dispatched method
+proc callDynamicMethod(method_name: str, arg: str) -> str {
+    var i = 0
+    while i < dispatch_count {
+        if dispatch_methods[i] == method_name {
+            // Would call the implementation
+            return ""
+        }
+        i = i + 1
+    }
+    return ""
+}
+
+// Exception handling framework
+var exception_handlers: [str]
+var exception_types: [str]
+var exception_count: i32 = 0
+
+proc registerExceptionHandler(exc_type: str, handler: str) {
+    insert(exception_types, exc_type)
+    insert(exception_handlers, handler)
+    exception_count = exception_count + 1
+}
+
+// Throw exception
+proc throwException(exc_type: str, message: str) {
+    var i = 0
+    while i < exception_count {
+        if exception_types[i] == exc_type {
+            // Would call handler
+            return
+        }
+        i = i + 1
+    }
+    print("Unhandled exception: " + exc_type + ": " + message)
+}
+
+// Module system
+var module_registry: [str]
+var module_paths: [str]
+var module_count: i32 = 0
+
+proc registerModule(name: str, path: str) {
+    insert(module_registry, name)
+    insert(module_paths, path)
+    module_count = module_count + 1
+}
+
+proc importModule(module_name: str) -> str {
+    var i = 0
+    while i < module_count {
+        if module_registry[i] == module_name {
+            return module_paths[i]
+        }
+        i = i + 1
+    }
+    return ""
+}
+
+// Annotations/metadata system
+var annotation_targets: [str]
+var annotation_keys: [str]
+var annotation_values: [str]
+var annotation_count: i32 = 0
+
+proc annotate(target: str, key: str, value: str) {
+    insert(annotation_targets, target)
+    insert(annotation_keys, key)
+    insert(annotation_values, value)
+    annotation_count = annotation_count + 1
+}
+
+proc getAnnotation(target: str, key: str) -> str {
+    var i = 0
+    while i < annotation_count {
+        if annotation_targets[i] == target && annotation_keys[i] == key {
+            return annotation_values[i]
+        }
+        i = i + 1
+    }
+    return ""
+}
+
+// Memoization cache
+var memo_inputs: [str]
+var memo_outputs: [str]
+var memo_count: i32 = 0
+
+proc memoize(input: str, output: str) {
+    if memo_count >= 10000 {
+        // Clear if too large
+        memo_inputs = []
+        memo_outputs = []
+        memo_count = 0
+    }
+    
+    insert(memo_inputs, input)
+    insert(memo_outputs, output)
+    memo_count = memo_count + 1
+}
+
+proc lookupMemo(input: str) -> str {
+    var i = 0
+    while i < memo_count {
+        if memo_inputs[i] == input {
+            return memo_outputs[i]
+        }
+        i = i + 1
+    }
+    return ""
+}
+
+// Weak reference system
+var weak_refs: [str]
+var weak_targets: [str]
+
+proc createWeakRef(target: str) -> str {
+    var ref_id = tostring(length(weak_refs))
+    insert(weak_refs, ref_id)
+    insert(weak_targets, target)
+    return ref_id
+}
+
+proc dereferenceWeakRef(ref_id: str) -> str {
+    var idx = toint(ref_id)
+    if idx >= 0 && idx < length(weak_targets) {
+        return weak_targets[idx]
+    }
+    return ""
+}
+
+// Advanced debugging support
+var debug_breakpoints: [i32]
+var debug_enabled: bool = false
+var debug_step_mode: bool = false
+
+proc setBreakpoint(line: i32) {
+    insert(debug_breakpoints, line)
+}
+
+proc clearBreakpoints() {
+    debug_breakpoints = []
+}
+
+proc isBreakpoint(line: i32) -> bool {
+    var i = 0
+    while i < length(debug_breakpoints) {
+        if debug_breakpoints[i] == line return true
+        i = i + 1
+    }
+    return false
+}
+
+// Call stack tracking for debugging
+var call_stack: [str]
+var call_stack_depth: i32 = 0
+
+proc pushCallFrame(func_name: str) {
+    insert(call_stack, func_name)
+    call_stack_depth = call_stack_depth + 1
+}
+
+proc popCallFrame() {
+    if call_stack_depth > 0 {
+        call_stack_depth = call_stack_depth - 1
+    }
+}
+
+proc dumpCallStack() {
+    print("=== CALL STACK ===")
+    var i = call_stack_depth - 1
+    while i >= 0 {
+        print("  [" + tostring(i) + "] " + call_stack[i])
+        i = i - 1
+    }
+}
+
+// Statistics
+proc dumpAdvancedStats() {
+    print("=== ADVANCED RUNTIME STATS ===")
+    print("Registered Types: " + tostring(rtinfo_type_count))
+    print("Registered Methods: " + tostring(dispatch_count))
+    print("Exception Handlers: " + tostring(exception_count))
+    print("Modules: " + tostring(module_count))
+    print("Memoized Entries: " + tostring(memo_count))
+    print("Call Stack Depth: " + tostring(call_stack_depth))
+    print("Lazy Cache Hits: " + tostring(lazy_cache_hits))
+}

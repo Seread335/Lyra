@@ -1,0 +1,307 @@
+// ====================================================
+// LYRA DEBUGGER
+// ====================================================
+// Features:
+//   - Breakpoints
+//   - Stack trace
+//   - Variable inspection
+//   - Step execution
+//   - Call tracing
+// ====================================================
+
+fn createDebugger() {
+    dbg = [
+        "Lyra Debugger",
+        "1.0.0",
+        [],          // breakpoints
+        [],          // callstack
+        [],          // variables
+        false,       // isRunning
+        false        // isPaused
+    ];
+    return dbg;
+}
+
+fn addBreakpoint(dbg, filename, lineNum) {
+    bp = [filename, lineNum, true];
+    arrayPush(arrayGet(dbg, 2), bp);
+    println("Breakpoint set at " + filename + ":" + toString(lineNum));
+    return dbg;
+}
+
+fn removeBreakpoint(dbg, filename, lineNum) {
+    bps = arrayGet(dbg, 2);
+    i = 0;
+    while i < arrayLength(bps) {
+        bp = arrayGet(bps, i);
+        if arrayGet(bp, 0) == filename && arrayGet(bp, 1) == lineNum {
+            arrayRemove(bps, i);
+            println("Breakpoint removed");
+            return dbg;
+        }
+        i = i + 1;
+    }
+    return dbg;
+}
+
+fn listBreakpoints(dbg) {
+    bps = arrayGet(dbg, 2);
+    
+    println("");
+    println("════════════════════════════════════════");
+    println("BREAKPOINTS");
+    println("════════════════════════════════════════");
+    println("");
+    
+    if arrayLength(bps) == 0 {
+        println("No breakpoints set");
+    } else {
+        i = 0;
+        while i < arrayLength(bps) {
+            bp = arrayGet(bps, i);
+            println(arrayGet(bp, 0) + ":" + toString(arrayGet(bp, 1)));
+            i = i + 1;
+        }
+    }
+    
+    println("");
+    println("════════════════════════════════════════");
+    println("");
+    
+    return 0;
+}
+
+fn pushCallFrame(dbg, funcName, lineNum) {
+    frame = [
+        funcName,
+        lineNum,
+        [],          // local variables
+        0            // execution time
+    ];
+    arrayPush(arrayGet(dbg, 3), frame);
+    return dbg;
+}
+
+fn popCallFrame(dbg) {
+    stack = arrayGet(dbg, 3);
+    if arrayLength(stack) > 0 {
+        arrayRemove(stack, arrayLength(stack) - 1);
+    }
+    return dbg;
+}
+
+fn addVariable(dbg, varName, varValue, varType) {
+    var = [varName, varValue, varType];
+    arrayPush(arrayGet(dbg, 4), var);
+    return dbg;
+}
+
+fn getVariable(dbg, varName) {
+    vars = arrayGet(dbg, 4);
+    i = 0;
+    while i < arrayLength(vars) {
+        var = arrayGet(vars, i);
+        if arrayGet(var, 0) == varName {
+            return arrayGet(var, 1);
+        }
+        i = i + 1;
+    }
+    return "";
+}
+
+fn updateVariable(dbg, varName, newValue) {
+    vars = arrayGet(dbg, 4);
+    i = 0;
+    while i < arrayLength(vars) {
+        var = arrayGet(vars, i);
+        if arrayGet(var, 0) == varName {
+            arraySet(var, 1, newValue);
+            return dbg;
+        }
+        i = i + 1;
+    }
+    return dbg;
+}
+
+fn printCallStack(dbg) {
+    stack = arrayGet(dbg, 3);
+    
+    println("");
+    println("════════════════════════════════════════");
+    println("CALL STACK");
+    println("════════════════════════════════════════");
+    println("");
+    
+    if arrayLength(stack) == 0 {
+        println("(empty)");
+    } else {
+        i = 0;
+        while i < arrayLength(stack) {
+            frame = arrayGet(stack, i);
+            println("#" + toString(i) + " " + arrayGet(frame, 0) + 
+                    " at line " + toString(arrayGet(frame, 1)));
+            i = i + 1;
+        }
+    }
+    
+    println("");
+    println("════════════════════════════════════════");
+    println("");
+    
+    return 0;
+}
+
+fn printVariables(dbg) {
+    vars = arrayGet(dbg, 4);
+    
+    println("");
+    println("════════════════════════════════════════");
+    println("LOCAL VARIABLES");
+    println("════════════════════════════════════════");
+    println("");
+    
+    if arrayLength(vars) == 0 {
+        println("(no variables)");
+    } else {
+        i = 0;
+        while i < arrayLength(vars) {
+            var = arrayGet(vars, i);
+            varName = arrayGet(var, 0);
+            varValue = arrayGet(var, 1);
+            varType = arrayGet(var, 2);
+            
+            println(varName + " = " + toString(varValue) + " (" + varType + ")");
+            
+            i = i + 1;
+        }
+    }
+    
+    println("");
+    println("════════════════════════════════════════");
+    println("");
+    
+    return 0;
+}
+
+fn startDebugger(dbg) {
+    arraySet(dbg, 5, true);
+    arraySet(dbg, 6, false);
+    println("Debugger started");
+    return dbg;
+}
+
+fn pauseDebugger(dbg) {
+    arraySet(dbg, 6, true);
+    println("Debugger paused");
+    return dbg;
+}
+
+fn resumeDebugger(dbg) {
+    arraySet(dbg, 6, false);
+    println("Debugger resumed");
+    return dbg;
+}
+
+fn stopDebugger(dbg) {
+    arraySet(dbg, 5, false);
+    arraySet(dbg, 6, false);
+    println("Debugger stopped");
+    return dbg;
+}
+
+fn stepInto(dbg) {
+    stack = arrayGet(dbg, 3);
+    if arrayLength(stack) > 0 {
+        frame = arrayGet(stack, arrayLength(stack) - 1);
+        lineNum = arrayGet(frame, 1);
+        arraySet(frame, 1, lineNum + 1);
+    }
+    println("Stepped into");
+    return dbg;
+}
+
+fn stepOver(dbg) {
+    stack = arrayGet(dbg, 3);
+    if arrayLength(stack) > 0 {
+        frame = arrayGet(stack, arrayLength(stack) - 1);
+        lineNum = arrayGet(frame, 1);
+        arraySet(frame, 1, lineNum + 1);
+    }
+    println("Stepped over");
+    return dbg;
+}
+
+fn stepOut(dbg) {
+    popCallFrame(dbg);
+    println("Stepped out");
+    return dbg;
+}
+
+fn printDebuggerStatus(dbg) {
+    isRunning = arrayGet(dbg, 5);
+    isPaused = arrayGet(dbg, 6);
+    
+    println("");
+    println("════════════════════════════════════════");
+    println("DEBUGGER STATUS");
+    println("════════════════════════════════════════");
+    println("");
+    println("State: " + (if isRunning then "RUNNING" else "STOPPED"));
+    println("Paused: " + (if isPaused then "YES" else "NO"));
+    println("Breakpoints: " + toString(arrayLength(arrayGet(dbg, 2))));
+    println("Call Stack Depth: " + toString(arrayLength(arrayGet(dbg, 3))));
+    println("");
+    println("════════════════════════════════════════");
+    println("");
+    
+    return 0;
+}
+
+fn evaluateExpression(dbg, expr) {
+    println("Evaluating: " + expr);
+    
+    // Simple variable lookup
+    value = getVariable(dbg, expr);
+    if value != "" {
+        println("  Result: " + toString(value));
+    } else {
+        println("  Result: undefined");
+    }
+    
+    return value;
+}
+
+// Demo
+fn main() {
+    dbg = createDebugger();
+    
+    startDebugger(dbg);
+    
+    addBreakpoint(dbg, "test.lyra", 10);
+    addBreakpoint(dbg, "test.lyra", 25);
+    listBreakpoints(dbg);
+    
+    pushCallFrame(dbg, "main", 1);
+    pushCallFrame(dbg, "calculate", 10);
+    
+    addVariable(dbg, "x", 42, "int");
+    addVariable(dbg, "name", "Lyra", "string");
+    addVariable(dbg, "result", 0, "int");
+    
+    printDebuggerStatus(dbg);
+    printCallStack(dbg);
+    printVariables(dbg);
+    
+    stepInto(dbg);
+    stepInto(dbg);
+    
+    updateVariable(dbg, "result", 84);
+    printVariables(dbg);
+    
+    evaluateExpression(dbg, "x");
+    evaluateExpression(dbg, "result");
+    
+    return 0;
+}
+
+main();

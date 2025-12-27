@@ -1,0 +1,43 @@
+{
+  "comments": [
+    "// Use IntelliSense to learn about possible attributes.",
+    "// Hover to view descriptions of existing attributes.",
+    "// For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387"
+  ],
+  "version": "0.1.0",
+  "$schema": "https://json.schemastore.org/prettierrc",
+  "comments": {
+    "lineComment": "//",
+    "blockComment": [ "/*", "*/" ]
+  },
+  "brackets": [
+    [ "{", "}" ],
+    [ "[", "]" ],
+    [ "(", ")" ]
+  ],
+  "autoClosingPairs": [
+    [ "{", "}" ],
+    [ "[", "]" ],
+    [ "(", ")" ],
+    [ "\"", "\"" ],
+    [ "'", "'" ]
+  ],
+  "surroundingPairs": [
+    [ "{", "}" ],
+    [ "[", "]" ],
+    [ "(", ")" ],
+    [ "\"", "\"" ],
+    [ "'", "'" ]
+  ],
+  "folding": {
+    "markers": {
+      "start": "^\\s*//\\s*#?region\\b",
+      "end": "^\\s*//\\s*#?endregion\\b"
+    }
+  },
+  "wordPattern": "(-?\\d*\\.\\d\\w*)|([^\\`\\~\\!\\@\\#\\%\\^\\&\\*\\(\\)\\-\\=\\+\\[\\{\\]\\}\\\\\\|\\;\\:\\'\\\"\\,\\.\\<\\>\\/\\?\\s]+)",
+  "indentationRules": {
+    "increaseIndentPattern": "^((?!\\/\\/).)*(\\{|\\[|\\()\\s*$",
+    "decreaseIndentPattern": "^((?!.*?\\/\\/).)*[\\}\\]\\)]"
+  }
+}

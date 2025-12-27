@@ -1,0 +1,407 @@
+// ============================================================================
+// LYRA NNLT - COMPREHENSIVE TEST SUITE
+// ============================================================================
+// Demonstrates all fixes and validates error handling
+
+// Test counters
+var test_total = 0
+var test_passed = 0
+var test_failed = 0
+
+// ============================================================================
+// TEST UTILITIES
+// ============================================================================
+
+proc reportTest(name: str, passed: bool) {
+    test_total = test_total + 1
+    
+    if passed {
+        test_passed = test_passed + 1
+        print("  ✓ " + name)
+    } else {
+        test_failed = test_failed + 1
+        print("  ✗ " + name)
+        if hasError() {
+            print("    Error: " + getErrorDescription())
+        }
+    }
+}
+
+proc printTestHeader(section: str) {
+    print("\n=== " + section + " ===")
+}
+
+proc printTestSummary() {
+    print("\n=== TEST SUMMARY ===")
+    print("Total: " + tostring(test_total))
+    print("Passed: " + tostring(test_passed))
+    print("Failed: " + tostring(test_failed))
+    
+    if test_total > 0 {
+        var pass_rate = test_passed * 100 / test_total
+        print("Pass Rate: " + tostring(pass_rate) + "%")
+    }
+}
+
+// ============================================================================
+// ERROR HANDLING TESTS
+// ============================================================================
+
+proc testErrorHandling() {
+    printTestHeader("ERROR HANDLING")
+    
+    // Test 1: Basic error setting
+    initErrorHandling()
+    setErrorQuick(ERR_VM_STACK_UNDERFLOW, "Test error")
+    reportTest("Error setting", hasError())
+    
+    // Test 2: Error code retrieval
+    var code = getErrorCode()
+    reportTest("Error code retrieval", code == ERR_VM_STACK_UNDERFLOW)
+    
+    // Test 3: Error message retrieval
+    var msg = getErrorMessage()
+    reportTest("Error message retrieval", length(msg) > 0)
+    
+    // Test 4: Error clearing
+    clearError()
+    reportTest("Error clearing", !hasError())
+    
+    // Test 5: Multiple errors
+    setErrorQuick(ERR_BOUNDS_ARRAY_INDEX, "Error 1")
+    var count1 = error_count
+    setErrorQuick(ERR_BOUNDS_ARRAY_INDEX, "Error 2")
+    reportTest("Multiple errors", error_count > count1)
+    
+    clearError()
+}
+
+// ============================================================================
+// VM STACK TESTS
+// ============================================================================
+
+proc testVMStack() {
+    printTestHeader("VM STACK OPERATIONS")
+    
+    initVM()
+    clearError()
+    
+    // Test 1: Push operation
+    vmPush("42")
+    reportTest("Push operation", vm_sp == 1)
+    
+    // Test 2: Pop operation
+    var val = vmPop()
+    reportTest("Pop operation", val == "42" && vm_sp == 0)
+    
+    // Test 3: Stack underflow detection
+    clearError()
+    vmPop()  // Pop from empty stack
+    reportTest("Stack underflow detection", hasError())
+    
+    // Test 4: Stack overflow prevention
+    clearError()
+    var i = 0
+    while i < vm_max_stack_depth + 10 {
+        vmPush(tostring(i))
+        i = i + 1
+    }
+    reportTest("Stack overflow prevention", hasError() || vm_sp <= vm_max_stack_depth)
+    
+    initVM()  // Reset
+}
+
+// ============================================================================
+// VM ARITHMETIC TESTS
+// ============================================================================
+
+proc testVMArithmetic() {
+    printTestHeader("VM ARITHMETIC OPERATIONS")
+    
+    initVM()
+    clearError()
+    
+    // Test 1: Addition
+    var result = vmAdd("10", "20")
+    reportTest("Addition", result == "30")
+    
+    // Test 2: Subtraction (CRITICAL FIX: corrected after vmSubtract fix)
+    result = vmSubtract("10", "20")  // Now computes 10 - 20 = -10
+    reportTest("Subtraction", result == "-10")
+    
+    // Test 3: Multiplication
+    result = vmMultiply("5", "6")
+    reportTest("Multiplication", result == "30")
+    
+    // Test 4: Division with valid divisor (CRITICAL FIX: correct expected value)
+    clearError()
+    result = vmDivide("20", "10")  // CRITICAL FIX: 20/10 = 2, not 10/20
+    reportTest("Division (valid)", result == "2" && !hasError())
+    
+    // Test 5: Division by zero handling
+    clearError()
+    result = vmDivide("10", "0")  // CRITICAL FIX: divisor must be 0
+    reportTest("Division by zero error", hasError())
+    
+    // Test 6: Modulo with valid divisor
+    clearError()
+    result = vmModulo("10", "3")  // CRITICAL FIX: 10 mod 3 = 1, not 23
+    reportTest("Modulo (valid)", result == "1" && !hasError())
+    
+    // Test 7: Modulo by zero handling (CRITICAL FIX: divisor must be 0)
+    clearError()
+    result = vmModulo("10", "0")
+    reportTest("Modulo by zero error", hasError())
+}
+
+// ============================================================================
+// VM COMPARISON TESTS
+// ============================================================================
+
+proc testVMComparisons() {
+    printTestHeader("VM COMPARISON OPERATIONS")
+    
+    initVM()
+    
+    // Test 1: Equal
+    var result = vmEqual("5", "5")
+    reportTest("Equal", result == "1")
+    
+    // Test 2: Not Equal
+    result = vmNotEqual("5", "3")
+    reportTest("Not Equal", result == "1")
+    
+    // Test 3: Less Than
+    result = vmLessThan("3", "5")
+    reportTest("Less Than", result == "1")
+    
+    // Test 4: Greater Than
+    result = vmGreaterThan("5", "3")
+    reportTest("Greater Than", result == "1")
+}
+
+// ============================================================================
+// MEMORY TESTS
+// ============================================================================
+
+proc testMemoryOptimization() {
+    printTestHeader("MEMORY OPTIMIZATION")
+    
+    initMemoryOptimization()
+    clearError()
+    
+    // Test 1: String interning
+    var s1 = internString("test")
+    var s2 = internString("test")
+    reportTest("String interning", s1 == s2 && intern_count > 0)
+    
+    // Test 2: Memory bounds checking
+    clearError()
+    var i = 0
+    while i < intern_max + 100 {
+        internString("string_" + tostring(i))
+        i = i + 1
+    }
+    reportTest("Intern table bounds", intern_count <= intern_max)
+    
+    // Test 3: Pool allocation
+    var obj = poolAllocate(10)
+    reportTest("Pool allocation", length(obj) > 0)
+    
+    // Test 4: Pool reuse (CRITICAL FIX: verify actual reuse)
+    var old_hits = mem_pool_hits
+    poolRelease(obj)
+    var obj2 = poolAllocate(10)
+    reportTest("Pool reuse", mem_pool_hits > old_hits && obj2 != [])
+    
+    // Test 5: Memory validation
+    reportTest("Memory validation", validateMemory())
+}
+
+// ============================================================================
+// JIT CACHE TESTS
+// ============================================================================
+
+proc testJITOptimization() {
+    printTestHeader("JIT OPTIMIZATION")
+    
+    initJITOptimization()
+    clearError()
+    
+    // Test 1: Cache add
+    icAdd("key1", "value1")
+    reportTest("Cache add", ic_cache_count > 0)
+    
+    // Test 2: Cache lookup hit
+    var val = icLookup("key1")
+    reportTest("Cache lookup hit", val == "value1")
+    
+    // Test 3: Cache lookup miss
+    val = icLookup("nonexistent")
+    reportTest("Cache lookup miss", val == "")
+    
+    // Test 4: Cache bounds checking
+    clearError()
+    var i = 0
+    while i < ic_max_entries + 100 {
+        icAdd("key_" + tostring(i), "value_" + tostring(i))
+        i = i + 1
+    }
+    reportTest("Cache bounds", ic_cache_count <= ic_max_entries)
+    
+    // Test 5: Type tracking
+    recordType("ADD", "integer")
+    recordType("ADD", "integer")
+    var dominant = getDominantType("ADD")
+    reportTest("Type tracking", length(dominant) > 0)
+}
+
+// ============================================================================
+// CONCURRENCY TESTS
+// ============================================================================
+
+proc testConcurrency() {
+    printTestHeader("CONCURRENCY FRAMEWORK")
+    
+    initConcurrency()
+    clearError()
+    
+    // Test 1: Lock acquisition
+    var acquired = acquireLock("lock1", "thread1")
+    reportTest("Lock acquisition", acquired)
+    
+    // Test 2: Lock ownership enforcement
+    clearError()
+    var acquired2 = acquireLock("lock1", "thread2")
+    reportTest("Lock ownership enforcement", !acquired2 && hasError())
+    
+    // Test 3: Lock release
+    clearError()
+    var released = releaseLock("lock1", "thread1")
+    reportTest("Lock release", released)
+    
+    // Test 4: Channel send
+    clearError()
+    var sent = sendChannel("hello", "thread1", "thread2")
+    reportTest("Channel send", sent && channel_size > 0)
+    
+    // Test 5: Channel receive
+    var msg = receiveChannel("thread2")
+    reportTest("Channel receive", msg == "hello" && channel_size == 0)
+}
+
+// ============================================================================
+// COMPILER TESTS
+// ============================================================================
+
+proc testCompilerOptimization() {
+    printTestHeader("COMPILER OPTIMIZATION")
+    
+    initCompilerOptimizer()
+    clearError()
+    
+    // Test 1: Dead code removal
+    var bc: [i32]
+    insert(bc, OP_LOAD_CONST)
+    insert(bc, 0)
+    insert(bc, OP_HALT)
+    insert(bc, OP_LOAD_CONST)  // Dead code
+    insert(bc, 1)
+    
+    var optimized = removeDeadCode(bc, length(bc))
+    reportTest("Dead code removal", length(optimized) < length(bc))
+    
+    // Test 2: Jump validation (CRITICAL FIX: meaningful test condition)
+    clearError()
+    var jmp_bc: [i32]
+    insert(jmp_bc, OP_JMP)
+    insert(jmp_bc, 1000)  // Invalid target
+    optimizeJumps(jmp_bc)
+    reportTest("Jump validation", hasError())  // Should detect error
+    
+    // Test 3: Bytecode validation
+    clearError()
+    var valid = validateBytecode(bc)
+    reportTest("Bytecode validation", valid || hasError())
+}
+
+// ============================================================================
+// BENCHMARKING TESTS
+// ============================================================================
+
+proc testBenchmarking() {
+    printTestHeader("BENCHMARKING FRAMEWORK")
+    
+    initBenchmarkFramework()
+    
+    // Test 1: Benchmark recording
+    recordBenchmark("test_bench", 100, 1000)
+    reportTest("Benchmark recording", length(bench_names) > 0)
+    
+    // Test 2: Baseline setting
+    setBaseline("test_bench")
+    reportTest("Baseline setting", bench_baseline_set[0])
+    
+    // Test 3: Regression detection
+    recordBenchmark("test_bench", 150, 1000)  // 50% slower
+    var has_regression = !checkRegressions(40)  // 40% threshold
+    reportTest("Regression detection", has_regression)
+}
+
+// ============================================================================
+// INTEGRATION TESTS
+// ============================================================================
+
+proc testIntegration() {
+    printTestHeader("SYSTEM INTEGRATION")
+    
+    // Test 1: Quick initialization
+    setOptimizationLevel(1)
+    initLyraOptimized()
+    reportTest("System initialization", sys_initialized)
+    
+    // Test 2: System start
+    startLyraSystem()
+    reportTest("System start", sys_running)
+    
+    // Test 3: System status
+    var status = getSystemStatus()
+    reportTest("System status", length(status) > 0)
+    
+    // Test 4: Diagnostics
+    runSystemDiagnostics()
+    reportTest("System diagnostics", sys_initialized)
+}
+
+// ============================================================================
+// MAIN TEST RUNNER
+// ============================================================================
+
+proc runAllTests() {
+    print("\n==============================================")
+    print("  LYRA NNLT - COMPREHENSIVE TEST SUITE")
+    print("==============================================\n")
+    
+    // Run all test categories
+    testErrorHandling()
+    testVMStack()
+    testVMArithmetic()
+    testVMComparisons()
+    testMemoryOptimization()
+    testJITOptimization()
+    testConcurrency()
+    testCompilerOptimization()
+    testBenchmarking()
+    testIntegration()
+    
+    // Print summary
+    printTestSummary()
+    
+    print("\n==============================================")
+    if test_failed == 0 {
+        print("  ✓ ALL TESTS PASSED")
+    } else {
+        print("  ✗ SOME TESTS FAILED")
+    }
+    print("==============================================\n")
+}

@@ -1,0 +1,13 @@
+data Point {
+    x: i32,
+    y: i32
+}
+
+proc test_struct() {
+    io.println("Creating Point...")
+    p = Point(x: 10, y: 20)
+    io.println("Point created")
+    io.println(p.x)
+}
+
+test_struct()

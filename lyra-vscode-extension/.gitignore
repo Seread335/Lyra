@@ -1,0 +1,21 @@
+# Dependencies
+/node_modules
+npm-debug.log
+yarn-error.log
+
+# Build outputs
+/dist
+/out
+*.vsix
+
+# IDE
+.vscode-test/
+*.code-workspace
+.DS_Store
+*.swp
+*.swo
+
+# Temporary
+*.tmp
+*.bak
+.env.local

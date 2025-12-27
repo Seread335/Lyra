@@ -1,0 +1,81 @@
+{
+  "name": "Lyra Dark",
+  "type": "dark",
+  "colors": {
+    "editor.background": "#1e1e1e",
+    "editor.foreground": "#d4d4d4",
+    "editor.lineNumberActiveForeground": "#4ec9b0",
+    "editorCursor.foreground": "#4ec9b0",
+    "editor.selectionBackground": "#264f78",
+    "editor.wordHighlightBackground": "#575757"
+  },
+  "tokenColors": [
+    {
+      "name": "Comment",
+      "scope": "comment",
+      "settings": {
+        "foreground": "#6a9955",
+        "fontStyle": "italic"
+      }
+    },
+    {
+      "name": "String",
+      "scope": "string",
+      "settings": {
+        "foreground": "#ce9178"
+      }
+    },
+    {
+      "name": "Number",
+      "scope": "constant.numeric",
+      "settings": {
+        "foreground": "#b5cea8"
+      }
+    },
+    {
+      "name": "Keywords Control",
+      "scope": "keyword.control",
+      "settings": {
+        "foreground": "#569cd6",
+        "fontStyle": "bold"
+      }
+    },
+    {
+      "name": "Keywords Declaration",
+      "scope": "keyword.declaration",
+      "settings": {
+        "foreground": "#569cd6",
+        "fontStyle": "bold"
+      }
+    },
+    {
+      "name": "Built-in Functions",
+      "scope": "support.function.builtin",
+      "settings": {
+        "foreground": "#dcdcaa",
+        "fontStyle": "bold"
+      }
+    },
+    {
+      "name": "Function Name",
+      "scope": "entity.name.function",
+      "settings": {
+        "foreground": "#dcdcaa"
+      }
+    },
+    {
+      "name": "Operators",
+      "scope": "keyword.operator",
+      "settings": {
+        "foreground": "#d4d4d4"
+      }
+    },
+    {
+      "name": "Variables",
+      "scope": "variable.other",
+      "settings": {
+        "foreground": "#9cdcfe"
+      }
+    }
+  ]
+}

@@ -1,0 +1,82 @@
+{
+  "If Statement": {
+    "prefix": "lyra-if",
+    "body": [
+      "if (${1:condition}) {",
+      "\t${2:code}",
+      "} else {",
+      "\t${3:else code}",
+      "}"
+    ],
+    "description": "If-else conditional statement"
+  },
+  "While Loop": {
+    "prefix": "lyra-while",
+    "body": [
+      "while (${1:condition}) {",
+      "\t${2:code}",
+      "}"
+    ],
+    "description": "While loop"
+  },
+  "Procedure": {
+    "prefix": "lyra-proc",
+    "body": [
+      "procedure ${1:name}(${2:params}) {",
+      "\t${3:code}",
+      "\treturn ${4:value}",
+      "}"
+    ],
+    "description": "Procedure (function) definition"
+  },
+  "Variable": {
+    "prefix": "lyra-var",
+    "body": "var ${1:name} = ${2:value}",
+    "description": "Variable declaration"
+  },
+  "File Write": {
+    "prefix": "lyra-file-write",
+    "body": "file.write_file(\"${1:filename}\", \"${2:content}\")",
+    "description": "Write content to file"
+  },
+  "File Read": {
+    "prefix": "lyra-file-read",
+    "body": "var ${1:content} = file.read_file(\"${2:filename}\")",
+    "description": "Read content from file"
+  },
+  "Try-Catch": {
+    "prefix": "lyra-try",
+    "body": [
+      "try {",
+      "\t${1:code}",
+      "} catch ${2:error} {",
+      "\t${3:handle error}",
+      "}"
+    ],
+    "description": "Try-catch error handling"
+  },
+  "Print Statement": {
+    "prefix": "lyra-print",
+    "body": "println(${1:value})",
+    "description": "Print with newline"
+  },
+  "String Length": {
+    "prefix": "lyra-strlen",
+    "body": "var ${1:len} = string.strlen(${2:\"text\"})",
+    "description": "Get string length"
+  },
+  "String Uppercase": {
+    "prefix": "lyra-upper",
+    "body": "var ${1:upper} = string.uppercase(${2:text})",
+    "description": "Convert string to uppercase"
+  },
+  "For Loop": {
+    "prefix": "lyra-for",
+    "body": [
+      "for ${1:item} in ${2:array} {",
+      "\t${3:code}",
+      "}"
+    ],
+    "description": "For-in loop (iterate over array)"
+  }
+}

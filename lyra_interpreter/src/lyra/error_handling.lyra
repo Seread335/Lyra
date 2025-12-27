@@ -1,0 +1,418 @@
+// ============================================================================
+// LYRA ERROR HANDLING FRAMEWORK
+// Enterprise-Grade Error Management System
+// ============================================================================
+// Comprehensive error codes, messages, recovery mechanisms, and tracing
+
+// ============================================================================
+// ERROR CODE DEFINITIONS
+// ============================================================================
+
+// Error severity levels
+var ERR_LEVEL_TRACE = 0    // Diagnostic information only
+var ERR_LEVEL_DEBUG = 1    // Debugging information
+var ERR_LEVEL_INFO = 2     // Informational
+var ERR_LEVEL_WARN = 3     // Warning condition
+var ERR_LEVEL_ERROR = 4    // Error - operation failed
+var ERR_LEVEL_CRITICAL = 5 // Critical error - system compromise
+
+// Error categories
+var ERR_CATEGORY_VM = 1000
+var ERR_CATEGORY_MEMORY = 2000
+var ERR_CATEGORY_TYPE = 3000
+var ERR_CATEGORY_BOUNDS = 4000
+var ERR_CATEGORY_CONCURRENCY = 5000
+var ERR_CATEGORY_COMPILER = 6000
+var ERR_CATEGORY_IO = 7000
+var ERR_CATEGORY_RUNTIME = 8000
+
+// VM Errors (1000-1099)
+var ERR_VM_STACK_OVERFLOW = 1001
+var ERR_VM_STACK_UNDERFLOW = 1002
+var ERR_VM_INVALID_OPCODE = 1003
+var ERR_VM_INVALID_PC = 1004
+var ERR_VM_DIVISION_BY_ZERO = 1005
+var ERR_VM_MODULO_BY_ZERO = 1006
+var ERR_VM_HALT = 1007
+
+// Memory Errors (2000-2099)
+var ERR_MEM_POOL_FULL = 2001
+var ERR_MEM_ALLOC_FAILED = 2002
+var ERR_MEM_BOUNDS_EXCEEDED = 2003
+var ERR_MEM_INVALID_POOL = 2004
+
+// Type Errors (3000-3099)
+var ERR_TYPE_CONVERSION = 3001
+var ERR_TYPE_MISMATCH = 3002
+var ERR_TYPE_NOT_FOUND = 3003
+
+// Bounds Errors (4000-4099)
+var ERR_BOUNDS_ARRAY_INDEX = 4001
+var ERR_BOUNDS_CONSTANT_INDEX = 4002
+var ERR_BOUNDS_VARIABLE_INDEX = 4003
+var ERR_BOUNDS_INVALID_JUMP = 4004
+
+// Concurrency Errors (5000-5099)
+var ERR_CONC_LOCK_DEADLOCK = 5001
+var ERR_CONC_LOCK_NOT_OWNED = 5002
+var ERR_CONC_RACE_CONDITION = 5003
+var ERR_CONC_SYNC_TIMEOUT = 5004
+
+// Compiler Errors (6000-6099)
+var ERR_COMP_INVALID_BYTECODE = 6001
+var ERR_COMP_JUMP_TARGET_INVALID = 6002
+var ERR_COMP_CONST_POOL_OVERFLOW = 6003
+
+// ============================================================================
+// ERROR STATE MANAGEMENT
+// ============================================================================
+
+// Current error state
+var last_error_code: i32 = 0
+var last_error_message: str = ""
+var last_error_level: i32 = ERR_LEVEL_INFO
+var last_error_file: str = ""
+var last_error_line: i32 = 0
+var error_count: i32 = 0
+var error_suppressed: bool = false
+
+// Error context stack for debugging
+var error_context_stack: [str]
+var error_context_count: i32 = 0
+var max_error_context: i32 = 100
+
+// Error handler callback
+var error_handler: str = ""
+
+// ============================================================================
+// ERROR REPORTING FUNCTIONS
+// ============================================================================
+
+// Set current error with full context (CRITICAL FIX: bounds check)
+proc setError(code: i32, message: str, level: i32, file: str, line: i32) {
+    if error_suppressed return
+    
+    last_error_code = code
+    last_error_message = message
+    last_error_level = level
+    last_error_file = file
+    last_error_line = line
+    error_count = error_count + 1
+    
+    // Push to error context stack with bounds check (CRITICAL FIX)
+    if error_context_count < max_error_context && error_context_count < 1000 {
+        var context = "[" + tostring(error_count) + "] " + 
+                     file + ":" + tostring(line) + " - " +
+                     "Code:" + tostring(code) + " " + message
+        insert(error_context_stack, context)
+        error_context_count = error_context_count + 1
+    }
+    
+    // Log error immediately
+    logError(code, message, level, file, line)
+}
+
+// Quick error setting without context
+proc setErrorQuick(code: i32, message: str) {
+    setError(code, message, ERR_LEVEL_ERROR, "unknown", 0)
+}
+
+// Clear current error
+proc clearError() {
+    last_error_code = 0
+    last_error_message = ""
+    last_error_level = ERR_LEVEL_INFO
+}
+
+// Check if error occurred
+proc hasError() -> bool {
+    return last_error_code != 0
+}
+
+// Get error code
+proc getErrorCode() -> i32 {
+    return last_error_code
+}
+
+// Get error message
+proc getErrorMessage() -> str {
+    return last_error_message
+}
+
+// Get full error description
+proc getErrorDescription() -> str {
+    var desc = "Error " + tostring(last_error_code) + ": " + last_error_message
+    if last_error_file != "" {
+        desc = desc + " at " + last_error_file + ":" + tostring(last_error_line)
+    }
+    return desc
+}
+
+// ============================================================================
+// ERROR LOGGING AND TRACING
+// ============================================================================
+
+// Comprehensive error logging
+proc logError(code: i32, message: str, level: i32, file: str, line: i32) {
+    var level_name = ""
+    if level == ERR_LEVEL_TRACE {
+        level_name = "TRACE"
+    }
+    else if level == ERR_LEVEL_DEBUG {
+        level_name = "DEBUG"
+    }
+    else if level == ERR_LEVEL_INFO {
+        level_name = "INFO"
+    }
+    else if level == ERR_LEVEL_WARN {
+        level_name = "WARN"
+    }
+    else if level == ERR_LEVEL_ERROR {
+        level_name = "ERROR"
+    }
+    else if level == ERR_LEVEL_CRITICAL {
+        level_name = "CRITICAL"
+    }
+    
+    var log_message = "[" + level_name + "] Code:" + tostring(code) + 
+                      " " + message
+    if file != "" {
+        log_message = log_message + " (" + file + ":" + tostring(line) + ")"
+    }
+    
+    print(log_message)
+}
+
+// Trace function entry (CRITICAL FIX: bounds check)
+proc traceEnter(function_name: str) {
+    if error_context_count < max_error_context && length(error_context_stack) < 1000 {
+        insert(error_context_stack, "ENTER: " + function_name)
+        error_context_count = error_context_count + 1
+    }
+}
+
+// Trace function exit (CRITICAL FIX: bounds check)
+proc traceExit(function_name: str) {
+    if error_context_count < max_error_context && length(error_context_stack) < 1000 {
+        insert(error_context_stack, "EXIT: " + function_name)
+        error_context_count = error_context_count + 1
+    }
+}
+
+// Dump error context for debugging
+proc dumpErrorContext() {
+    print("=== ERROR CONTEXT STACK ===")
+    var i = 0
+    while i < error_context_count {
+        print(error_context_stack[i])
+        i = i + 1
+    }
+    print("=== END CONTEXT ===")
+}
+
+// ============================================================================
+// RECOVERY MECHANISMS
+// ============================================================================
+
+// Recovery action enumeration
+var RECOVERY_IGNORE = 0      // Ignore error and continue
+var RECOVERY_RETRY = 1       // Retry operation
+var RECOVERY_FALLBACK = 2    // Use fallback value
+var RECOVERY_ABORT = 3       // Abort operation
+var RECOVERY_SHUTDOWN = 4    // Shutdown system
+
+// Attempt error recovery
+proc attemptRecovery(error_code: i32) -> i32 {
+    // Recovery strategies per error type
+    
+    if error_code == ERR_VM_STACK_UNDERFLOW {
+        return RECOVERY_ABORT  // Cannot continue with empty stack
+    }
+    
+    if error_code == ERR_VM_STACK_OVERFLOW {
+        return RECOVERY_ABORT  // Critical, cannot continue
+    }
+    
+    if error_code == ERR_VM_DIVISION_BY_ZERO || error_code == ERR_VM_MODULO_BY_ZERO {
+        return RECOVERY_FALLBACK  // Use 0 as fallback value
+    }
+    
+    if error_code == ERR_MEM_ALLOC_FAILED {
+        return RECOVERY_ABORT  // Cannot allocate memory
+    }
+    
+    if error_code == ERR_TYPE_CONVERSION {
+        return RECOVERY_FALLBACK  // Use default value
+    }
+    
+    if error_code == ERR_BOUNDS_ARRAY_INDEX {
+        return RECOVERY_ABORT  // Cannot access invalid index
+    }
+    
+    if error_code == ERR_CONC_LOCK_DEADLOCK {
+        return RECOVERY_ABORT  // Deadlock detected
+    }
+    
+    // Default: try to ignore non-critical errors
+    if last_error_level < ERR_LEVEL_ERROR {
+        return RECOVERY_IGNORE
+    }
+    
+    return RECOVERY_ABORT
+}
+
+// ============================================================================
+// ERROR CONTEXT TRACKING
+// ============================================================================
+
+// Push error context (CRITICAL FIX: bounds check)
+proc pushErrorContext(context: str) {
+    if error_context_count < max_error_context && length(error_context_stack) < 1000 {
+        insert(error_context_stack, ">>> " + context)
+        error_context_count = error_context_count + 1
+    }
+}
+
+// Pop error context
+proc popErrorContext() {
+    if error_context_count > 0 {
+        error_context_count = error_context_count - 1
+    }
+}
+
+// ============================================================================
+// ERROR STATISTICS
+// ============================================================================
+
+var error_stats_by_code: [i32]
+var error_stats_by_level: [i32]
+var total_errors_logged: i32 = 0
+
+// Record error statistic
+proc recordErrorStat(code: i32, level: i32) {
+    total_errors_logged = total_errors_logged + 1
+}
+
+// Get error statistics
+proc dumpErrorStatistics() {
+    print("=== ERROR STATISTICS ===")
+    print("Total Errors Logged: " + tostring(total_errors_logged))
+    print("Current Error: " + tostring(last_error_code) + 
+          " (Level: " + tostring(last_error_level) + ")")
+    print("Context Stack Depth: " + tostring(error_context_count))
+}
+
+// ============================================================================
+// ERROR SUPPRESSION (for specific operations)
+// ============================================================================
+
+proc suppressErrors() {
+    error_suppressed = true
+}
+
+proc resumeErrors() {
+    error_suppressed = false
+}
+
+proc isErrorSuppressed() -> bool {
+    return error_suppressed
+}
+
+// ============================================================================
+// SPECIFIC ERROR HELPERS
+// ============================================================================
+
+// Stack errors
+proc errorStackUnderflow(operation: str) {
+    setErrorQuick(ERR_VM_STACK_UNDERFLOW,
+                  "Stack underflow in " + operation + ": attempted to pop from empty stack")
+}
+
+proc errorStackOverflow() {
+    setErrorQuick(ERR_VM_STACK_OVERFLOW,
+                  "Stack overflow: maximum stack depth exceeded")
+}
+
+// Bounds errors
+proc errorArrayBounds(index: i32, length: i32) {
+    var msg = "Array index out of bounds: index " + tostring(index) + 
+              " >= length " + tostring(length)
+    setErrorQuick(ERR_BOUNDS_ARRAY_INDEX, msg)
+}
+
+proc errorBytecodeIndex(index: i32, max_index: i32) {
+    var msg = "Bytecode index out of bounds: " + tostring(index) + 
+              " >= " + tostring(max_index)
+    setErrorQuick(ERR_BOUNDS_CONSTANT_INDEX, msg)
+}
+
+// Type errors
+proc errorTypeConversion(value: str, target_type: str) {
+    var msg = "Cannot convert '" + value + "' to " + target_type
+    setErrorQuick(ERR_TYPE_CONVERSION, msg)
+}
+
+// Division errors
+proc errorDivisionByZero() {
+    setErrorQuick(ERR_VM_DIVISION_BY_ZERO, "Division by zero")
+}
+
+proc errorModuloByZero() {
+    setErrorQuick(ERR_VM_MODULO_BY_ZERO, "Modulo by zero")
+}
+
+// Jump errors
+proc errorInvalidJumpTarget(target: i32, max_addr: i32) {
+    var msg = "Invalid jump target: " + tostring(target) + 
+              " >= code length " + tostring(max_addr)
+    setErrorQuick(ERR_BOUNDS_INVALID_JUMP, msg)
+}
+
+// Concurrency errors
+proc errorLockAcquisition(lock_id: str) {
+    var msg = "Failed to acquire lock: " + lock_id
+    setErrorQuick(ERR_CONC_LOCK_DEADLOCK, msg)
+}
+
+// ============================================================================
+// ERROR RECOVERY STATE MACHINE
+// ============================================================================
+
+// State machine for error handling
+var error_recovery_state: i32 = 0  // 0=normal, 1=recovering, 2=shutdown
+var error_recovery_count: i32 = 0
+var max_recovery_attempts: i32 = 3
+
+proc startErrorRecovery() {
+    if error_recovery_count < max_recovery_attempts {
+        error_recovery_state = 1
+        error_recovery_count = error_recovery_count + 1
+    } else {
+        error_recovery_state = 2  // Force shutdown
+    }
+}
+
+proc endErrorRecovery() {
+    error_recovery_state = 0
+}
+
+proc isRecoveringFromError() -> bool {
+    return error_recovery_state == 1
+}
+
+proc shouldShutdown() -> bool {
+    return error_recovery_state == 2
+}
+
+// ============================================================================
+// INITIALIZATION
+// ============================================================================
+
+proc initErrorHandling() {
+    clearError()
+    error_count = 0
+    error_context_count = 0
+    error_recovery_state = 0
+    error_recovery_count = 0
+    print("ERROR HANDLING SYSTEM INITIALIZED")
+}

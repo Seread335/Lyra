@@ -1,0 +1,330 @@
+// ============================================================================
+// MEMORY OPTIMIZATION - FIXED & IMPROVED
+// ============================================================================
+// Object pooling with proper reuse, string interning with bounds, accurate tracking
+
+// ============================================================================
+// MEMORY POOL SYSTEM - FIXED
+// ============================================================================
+
+// Object pool for frequently allocated objects
+var mem_pool_objects: [[str]]
+var mem_pool_available: i32 = 0
+var mem_pool_max_size: i32 = 100
+var mem_pool_object_size: i32 = 100
+
+// Allocation statistics
+var mem_total_allocations: i32 = 0
+var mem_pool_hits: i32 = 0
+var mem_pool_misses: i32 = 0
+var mem_peak_usage: i32 = 0
+var mem_current_usage: i32 = 0
+
+// Initialize memory pool
+proc initMemoryPool() {
+    mem_pool_objects = []
+    mem_pool_available = 0
+    mem_total_allocations = 0
+    mem_pool_hits = 0
+    mem_pool_misses = 0
+    mem_current_usage = 0
+    mem_peak_usage = 0
+    print("Memory pool initialized (max " + tostring(mem_pool_max_size) + " objects)")
+}
+
+// Allocate with pool reuse (CRITICAL FIX: bounds check)
+proc poolAllocate(size: i32) -> [str] {
+    var obj: [str]
+    
+    // Try to get from pool first (CRITICAL FIX: bounds check)
+    if mem_pool_available > 0 && length(mem_pool_objects) > 0 {
+        var pool_idx = mem_pool_available - 1
+        if pool_idx >= 0 && pool_idx < length(mem_pool_objects) {
+            // Get from pool
+            obj = mem_pool_objects[pool_idx]
+            mem_pool_available = mem_pool_available - 1
+            mem_pool_hits = mem_pool_hits + 1
+        } else {
+            // Allocate new if pool access fails
+            var i = 0
+            while i < size {
+                insert(obj, "")
+                i = i + 1
+            }
+            mem_pool_misses = mem_pool_misses + 1
+        }
+    } else {
+        // Allocate new
+        var i = 0
+        while i < size {
+            insert(obj, "")
+            i = i + 1
+        }
+        mem_pool_misses = mem_pool_misses + 1
+    }
+    
+    mem_total_allocations = mem_total_allocations + 1
+    mem_current_usage = mem_current_usage + size
+    
+    if mem_current_usage > mem_peak_usage {
+        mem_peak_usage = mem_current_usage
+    }
+    
+    return obj
+}
+
+// Release back to pool with proper management and sanitization (CRITICAL FIX)
+proc poolRelease(obj: [str]) {
+    var size = length(obj)
+    
+    if size <= 0 return
+    
+    // Only return to pool if we have space and object is reasonable size
+    if mem_pool_available < mem_pool_max_size && size <= mem_pool_object_size {
+        // SECURITY FIX: Clear object contents completely to prevent information leaks
+        var i = 0
+        while i < length(obj) {
+            // Overwrite with empty string, repeat for security
+            obj[i] = ""
+            i = i + 1
+        }
+        
+        // Double-check all cleared
+        i = 0
+        while i < length(obj) {
+            if length(obj[i]) != 0 {
+                // Safety: if not cleared, don't return to pool
+                return
+            }
+            i = i + 1
+        }
+        
+        // Return to pool
+        insert(mem_pool_objects, obj)
+        mem_pool_available = mem_pool_available + 1
+    }
+    
+    mem_current_usage = mem_current_usage - size
+    if mem_current_usage < 0 mem_current_usage = 0
+}
+
+// ============================================================================
+// STRING INTERNING SYSTEM - FIXED WITH BOUNDS
+// ============================================================================
+
+var intern_table: [str]
+var intern_count: i32 = 0
+var intern_max: i32 = 5000
+
+// Initialize string interning
+proc initStringIntern() {
+    intern_table = []
+    intern_count = 0
+    print("String intern table initialized (max " + tostring(intern_max) + " entries)")
+}
+
+// Intern string with proper bounds checking (CRITICAL FIX)
+proc internString(s: str) -> str {
+    if length(s) == 0 return ""  // Don't intern empty strings
+    
+    // Check if string already interned
+    var i = 0
+    while i < intern_count {
+        if i >= length(intern_table) break
+        
+        if intern_table[i] == s {
+            return s  // Return interned string
+        }
+        
+        i = i + 1
+    }
+    
+    // Add to intern table if we have space (CRITICAL FIX)
+    if intern_count < intern_max {
+        // Double-check bounds before insert
+        if length(intern_table) >= intern_max {
+            return s  // Safety: don't add if already at limit
+        }
+        
+        insert(intern_table, s)
+        intern_count = intern_count + 1
+    }
+    // If table is full, just return the string (not interned)
+    
+    return s
+}
+
+// Compact intern table periodically
+proc compactInternTable() {
+    if intern_count > intern_max * 80 / 100 {  // 80% full
+        // In real system, would do garbage collection
+        // For now, just log
+        print("WARN: Intern table is " + tostring(intern_count * 100 / intern_max) + "% full")
+    }
+}
+
+// ============================================================================
+// STACK FRAME POOLING - FIXED
+// ============================================================================
+
+var frame_pool: [[str]]
+var frame_pool_available: i32 = 0
+var max_frame_pool: i32 = 100
+
+// Initialize frame pool
+proc initFramePool() {
+    frame_pool = []
+    frame_pool_available = 0
+    print("Frame pool initialized (max " + tostring(max_frame_pool) + " frames)")
+}
+
+// Allocate frame from pool (CRITICAL FIX: validate frame before return + clear reused frames)
+proc allocateFrame(size: i32) -> [str] {
+    var frame: [str]
+    
+    // Try to get from pool first (CRITICAL FIX - was never used)
+    if frame_pool_available > 0 && length(frame_pool) > 0 {
+        var pool_idx = frame_pool_available - 1
+        if pool_idx >= 0 && pool_idx < length(frame_pool) {
+            frame = frame_pool[pool_idx]
+            
+            // CRITICAL FIX: Clear reused frame contents to prevent data leakage
+            if length(frame) > 0 {
+                var j = 0
+                while j < length(frame) {
+                    frame[j] = ""
+                    j = j + 1
+                }
+            }
+            
+            // CRITICAL FIX: Validate frame is not empty before returning
+            if length(frame) >= size {
+                frame_pool_available = frame_pool_available - 1
+                return frame
+            }
+        }
+    }
+    
+    // Allocate new frame if pool exhausted or frame too small
+    var i = 0
+    while i < size {
+        insert(frame, "")
+        i = i + 1
+    }
+    
+    return frame
+}
+
+// Release frame back to pool (CRITICAL FIX)
+proc releaseFrame(frame: [str]) {
+    if frame_pool_available < max_frame_pool {
+        // Clear frame
+        var i = 0
+        while i < length(frame) {
+            frame[i] = ""
+            i = i + 1
+        }
+        
+        // Return to pool
+        insert(frame_pool, frame)
+        frame_pool_available = frame_pool_available + 1
+    }
+}
+
+// ============================================================================
+// MEMORY STATISTICS
+// ============================================================================
+
+// Get memory statistics
+proc getMemoryStats() -> str {
+    var stats = "Memory Stats:\n"
+    stats = stats + "  Total Allocations: " + tostring(mem_total_allocations) + "\n"
+    stats = stats + "  Pool Hits: " + tostring(mem_pool_hits) + "\n"
+    stats = stats + "  Pool Misses: " + tostring(mem_pool_misses) + "\n"
+    stats = stats + "  Current Usage: " + tostring(mem_current_usage) + " items\n"
+    stats = stats + "  Peak Usage: " + tostring(mem_peak_usage) + " items\n"
+    
+    var hit_ratio = 0
+    if mem_total_allocations > 0 {
+        hit_ratio = mem_pool_hits * 100 / mem_total_allocations
+    }
+    stats = stats + "  Pool Hit Ratio: " + tostring(hit_ratio) + "%\n"
+    
+    stats = stats + "  Interned Strings: " + tostring(intern_count) + "/" + 
+            tostring(intern_max) + "\n"
+    stats = stats + "  Pooled Frames: " + tostring(frame_pool_available) + "/" + 
+            tostring(max_frame_pool)
+    
+    return stats
+}
+
+// Dump memory stats
+proc dumpMemoryStats() {
+    print(getMemoryStats())
+}
+
+// ============================================================================
+// GARBAGE COLLECTION HELPERS
+// ============================================================================
+
+// Force memory cleanup
+proc forceCleanup() {
+    print("Force cleanup triggered")
+    
+    // Compact intern table if needed
+    compactInternTable()
+    
+    // Clear unused pools if too large
+    if mem_pool_available > mem_pool_max_size / 2 {
+        frame_pool = []
+        frame_pool_available = 0
+        print("Frame pool cleared")
+    }
+}
+
+// ============================================================================
+// INITIALIZATION
+// ============================================================================
+
+proc initMemoryOptimization() {
+    initMemoryPool()
+    initStringIntern()
+    initFramePool()
+    print("MEMORY OPTIMIZATION INITIALIZED")
+}
+
+// ============================================================================
+// MEMORY VALIDATION
+// ============================================================================
+
+// Validate memory system state
+proc validateMemory() -> bool {
+    // Check pool consistency
+    if mem_pool_available > length(mem_pool_objects) {
+        setErrorQuick(ERR_MEM_INVALID_POOL,
+                     "Pool available count exceeds pool size")
+        return false
+    }
+    
+    // Check frame pool consistency
+    if frame_pool_available > length(frame_pool) {
+        setErrorQuick(ERR_MEM_INVALID_POOL,
+                     "Frame pool available count exceeds frame pool size")
+        return false
+    }
+    
+    // Check intern table
+    if intern_count > intern_max {
+        setErrorQuick(ERR_MEM_BOUNDS_EXCEEDED,
+                     "Intern table count exceeds maximum")
+        return false
+    }
+    
+    if intern_count > length(intern_table) {
+        setErrorQuick(ERR_MEM_INVALID_POOL,
+                     "Intern table count exceeds actual table size")
+        return false
+    }
+    
+    return true
+}

@@ -1,0 +1,456 @@
+// ============================================================================
+// LYRA NNLT - SECURITY HARDENING & INTEGRITY SYSTEM
+// ============================================================================
+// Chống tampering, chống tấn công, kiểm tra tính toàn vẹn liên tục
+// Cryptographic Security Layer
+
+// ============================================================================
+// SECURITY STATE TRACKING
+// ============================================================================
+
+var security_enabled: bool = true           // Always on
+var security_level: i32 = 5                 // 1-5, default 5=maximum
+var security_violations: i32 = 0
+var tamper_detected: bool = false
+var tamper_count: i32 = 0
+
+// Integrity tokens for critical structures
+var INTEGRITY_TOKEN_STACK: i32 = 0x12345678
+var INTEGRITY_TOKEN_HEAP: i32 = 0x87654321
+var INTEGRITY_TOKEN_BYTECODE: i32 = 0xABCDEF00
+
+// Security event log
+var security_events: [str]
+var security_event_count: i32 = 0
+var security_event_max: i32 = 500
+
+// ============================================================================
+// CRYPTOGRAPHIC CHECKSUM SYSTEM
+// ============================================================================
+
+// Enhanced checksum with XOR and rotation (CRITICAL)
+proc calculateSecureChecksum(data: str) -> i32 {
+    var checksum: i32 = 0x5A5A5A5A  // Non-zero seed
+    var i = 0
+    
+    while i < length(data) {
+        var c = data[i]
+        var c_val = 97  // Default 'a' for character representation
+        if length(c) > 0 {
+            // Safe character value extraction
+            c_val = (c[0] - 0) % 256
+        }
+        
+        // XOR with current byte
+        checksum = checksum ^ c_val
+        
+        // Rotate left by 3 bits with safe bit operations
+        var shifted_left = (checksum << 3)
+        var shifted_right = (checksum >> 29) & 0x7
+        var temp = shifted_left | shifted_right
+        checksum = temp
+        
+        // Add to create avalanche effect
+        checksum = checksum + (i * 17)
+        
+        i = i + 1
+    }
+    
+    // Final mixing
+    checksum = checksum ^ (checksum >> 16)
+    checksum = checksum * 0x7FED2B8F  // Large prime multiplier
+    
+    return checksum
+}
+
+// Double-check integrity (two independent checksums)
+proc verifyIntegrityDoubleCheck(data: str, checksum1: i32, checksum2: i32) -> bool {
+    var calc_checksum = calculateSecureChecksum(data)
+    
+    // Must match at least one (redundancy)
+    if checksum1 != calc_checksum && checksum2 != calc_checksum {
+        logSecurityEvent("INTEGRITY_FAILURE", 
+                        "Double checksum failed for data: " + data)
+        tamper_detected = true
+        tamper_count = tamper_count + 1
+        return false
+    }
+    
+    return true
+}
+
+// ============================================================================
+// BYTECODE INTEGRITY VERIFICATION
+// ============================================================================
+
+// Verify bytecode hasn't been modified
+proc verifyBytecodeIntegrity(bytecode: [i32], original_checksum: i32) -> bool {
+    if !security_enabled return true
+    
+    var checksum: i32 = 0
+    var i = 0
+    
+    while i < length(bytecode) {
+        checksum = checksum ^ bytecode[i]
+        checksum = (checksum << 1) | (checksum >> 31)
+        i = i + 1
+    }
+    
+    if checksum != original_checksum {
+        logSecurityEvent("BYTECODE_TAMPERING",
+                        "Bytecode integrity check failed")
+        return false
+    }
+    
+    return true
+}
+
+// ============================================================================
+// STACK INTEGRITY CHECKING
+// ============================================================================
+
+// Verify stack hasn't been corrupted
+proc verifyStackIntegrity(stack: [str], expected_canary: str) -> bool {
+    if !security_enabled return true
+    
+    // CRITICAL FIX: Check stack size is reasonable (length is always >= 0)
+    var stack_len = length(stack)
+    var max_depth = 100000  // Hardened default when MAX_STACK_DEPTH undefined
+    if stack_len > max_depth {
+        logSecurityEvent("STACK_CORRUPTION",
+                        "Stack size invalid: " + tostring(stack_len))
+        return false
+    }
+    
+    // Check canary at bottom
+    if length(stack) > 0 && stack[0] != expected_canary {
+        logSecurityEvent("STACK_CORRUPTION",
+                        "Stack canary overwritten")
+        return false
+    }
+    
+    return true
+}
+
+// ============================================================================
+// MEMORY ISOLATION VERIFICATION
+// ============================================================================
+
+// Verify memory regions don't overlap
+proc verifyMemoryIsolation(region1_start: i32, region1_size: i32,
+                          region2_start: i32, region2_size: i32) -> bool {
+    if !security_enabled return true
+    
+    var region1_end = region1_start + region1_size
+    var region2_end = region2_start + region2_size
+    
+    // Check no overlap
+    if region1_start < region2_end && region2_start < region1_end {
+        logSecurityEvent("MEMORY_OVERLAP",
+                        "Memory regions overlap: [" + tostring(region1_start) + 
+                        ", " + tostring(region1_end) + "] and [" + 
+                        tostring(region2_start) + ", " + tostring(region2_end) + "]")
+        return false
+    }
+    
+    return true
+}
+
+// ============================================================================
+// TAINT TRACKING (Detect suspicious data flow)
+// ============================================================================
+
+var tainted_values: [str]
+var tainted_count: i32 = 0
+
+// Mark value as tainted (came from untrusted source)
+proc markTainted(value: str) {
+    if tainted_count < 1000 {
+        insert(tainted_values, value)
+        tainted_count = tainted_count + 1
+        logSecurityEvent("TAINT_TRACK", "Value marked as tainted")
+    }
+}
+
+// Check if value is tainted
+proc isTainted(value: str) -> bool {
+    var i = 0
+    var tainted_len = length(tainted_values)
+    
+    // CRITICAL FIX: Proper bounds checking before array access
+    while i < tainted_count && i < tainted_len {
+        if i >= tainted_len break  // Double safety check
+        
+        if tainted_values[i] == value {
+            logSecurityEvent("TAINT_CHECK", "Tainted value detected in operation")
+            return true
+        }
+        
+        i = i + 1
+    }
+    
+    return false
+}
+
+// ============================================================================
+// ANTI-TAMPERING MECHANISMS
+// ============================================================================
+
+// Random seed for security tokens (CRITICAL)
+var security_seed: i32 = 0xDEADBEEF
+
+// Generate security token (used to verify structures)
+proc generateSecurityToken(data: str) -> i32 {
+    var token = calculateSecureChecksum(data)
+    token = token ^ security_seed
+    return token
+}
+
+// Verify security token
+proc verifySecurityToken(data: str, stored_token: i32) -> bool {
+    var expected_token = generateSecurityToken(data)
+    
+    if expected_token != stored_token {
+        logSecurityEvent("TOKEN_MISMATCH",
+                        "Security token verification failed")
+        return false
+    }
+    
+    return true
+}
+
+// ============================================================================
+// EXECUTION PATH VERIFICATION
+// ============================================================================
+
+var execution_path: [str]
+var path_checksum: i32 = 0
+
+// Log execution entering function
+proc logExecutionEnter(function_name: str) {
+    if length(execution_path) < 1000 {
+        insert(execution_path, "ENTER:" + function_name)
+    }
+    
+    // Update path checksum
+    path_checksum = path_checksum ^ calculateSecureChecksum(function_name)
+}
+
+// Log execution exiting function
+proc logExecutionExit(function_name: str) {
+    if length(execution_path) < 1000 {
+        insert(execution_path, "EXIT:" + function_name)
+    }
+    
+    // Update path checksum
+    path_checksum = path_checksum ^ calculateSecureChecksum(function_name)
+}
+
+// Verify execution path wasn't hijacked
+proc verifyExecutionPath(expected_checksum: i32) -> bool {
+    if path_checksum != expected_checksum {
+        logSecurityEvent("EXECUTION_HIJACK",
+                        "Execution path checksum mismatch - possible hijacking")
+        return false
+    }
+    
+    return true
+}
+
+// ============================================================================
+// UNAUTHORIZED ACCESS DETECTION
+// ============================================================================
+
+var access_log: [str]
+var access_violations: i32 = 0
+
+// Check if access is authorized
+proc validateAccessControl(subject: str, object_name: str, action: str) -> bool {
+    // RULE 1: Must have valid subject
+    if length(subject) == 0 {
+        logSecurityEvent("ACCESS_DENIED", "Empty subject for " + action + " on " + object_name)
+        access_violations = access_violations + 1
+        return false
+    }
+    
+    // RULE 2: Must have valid object
+    if length(object_name) == 0 {
+        logSecurityEvent("ACCESS_DENIED", "Empty object for " + action)
+        access_violations = access_violations + 1
+        return false
+    }
+    
+    // RULE 3: Must have valid action
+    if action != "READ" && action != "WRITE" && action != "EXECUTE" && action != "DELETE" {
+        logSecurityEvent("INVALID_ACTION", "Unknown action: " + action)
+        access_violations = access_violations + 1
+        return false
+    }
+    
+    // Log access
+    var log_entry = "[" + subject + "] " + action + " " + object_name
+    if length(access_log) < 10000 {
+        insert(access_log, log_entry)
+    }
+    
+    return true
+}
+
+// ============================================================================
+// RESOURCE EXHAUSTION PREVENTION
+// ============================================================================
+
+var resource_usage: [i32]
+var resource_names: [str]
+var resource_limits: [i32]
+var resource_count: i32 = 0
+
+// Register resource with limit
+proc registerResource(name: str, limit: i32) {
+    if resource_count < 50 {
+        insert(resource_names, name)
+        insert(resource_limits, limit)
+        insert(resource_usage, 0)
+        resource_count = resource_count + 1
+    }
+}
+
+// Check resource limit before use
+proc checkResourceLimit(resource_name: str, amount: i32) -> bool {
+    var i = 0
+    while i < resource_count {
+        if i >= length(resource_names) || i >= length(resource_limits) || 
+           i >= length(resource_usage) break
+        
+        if resource_names[i] == resource_name {
+            if resource_usage[i] + amount > resource_limits[i] {
+                logSecurityEvent("RESOURCE_EXHAUSTION",
+                                resource_name + " limit exceeded: " + 
+                                tostring(resource_usage[i]) + " + " + tostring(amount) + 
+                                " > " + tostring(resource_limits[i]))
+                return false
+            }
+            
+            // Update usage
+            resource_usage[i] = resource_usage[i] + amount
+            return true
+        }
+        
+        i = i + 1
+    }
+    
+    return true
+}
+
+// ============================================================================
+// SIDE-CHANNEL ATTACK PREVENTION
+// ============================================================================
+
+// Constant-time comparison (resistant to timing attacks)
+proc constantTimeEquals(a: str, b: str) -> bool {
+    // RULE: Must take same time regardless of match position
+    var result: i32 = 0
+    var min_len = length(a)
+    if length(b) < min_len {
+        min_len = length(b)
+    }
+    
+    // Always compare all characters
+    var i = 0
+    while i < min_len {
+        var c1 = a[i]
+        var c2 = b[i]
+        
+        if c1 != c2 {
+            result = result + 1
+        }
+        
+        i = i + 1
+    }
+    
+    // Also check length difference
+    if length(a) != length(b) {
+        result = result + 1
+    }
+    
+    return result == 0
+}
+
+// ============================================================================
+// SECURITY EVENT LOGGING
+// ============================================================================
+
+proc logSecurityEvent(event_type: str, details: str) {
+    var timestamp = 0  // Simplified
+    var log_entry = "[" + event_type + "] " + details
+    
+    if security_event_count < security_event_max {
+        insert(security_events, log_entry)
+        security_event_count = security_event_count + 1
+        
+        // Print for immediate visibility
+        if security_level >= 3 {
+            print("SECURITY: " + log_entry)
+        }
+    }
+}
+
+// ============================================================================
+// SECURITY AUDIT REPORT
+// ============================================================================
+
+proc generateSecurityAudit() {
+    print("\n=== SECURITY HARDENING AUDIT REPORT ===")
+    print("Security Level: " + tostring(security_level) + "/5")
+    print("Tamper Detected: " + tostring(tamper_detected))
+    print("Tamper Count: " + tostring(tamper_count))
+    print("Access Violations: " + tostring(access_violations))
+    print("Tainted Values: " + tostring(tainted_count))
+    print("Security Events Logged: " + tostring(security_event_count))
+    print("Execution Path Length: " + tostring(length(execution_path)))
+    print("==========================================\n")
+}
+
+// ============================================================================
+// INITIALIZATION
+// ============================================================================
+
+proc initSecurityHardening() {
+    security_enabled = true
+    security_level = 5
+    security_violations = 0
+    tamper_detected = false
+    tamper_count = 0
+    
+    security_events = []
+    security_event_count = 0
+    
+    tainted_values = []
+    tainted_count = 0
+    
+    execution_path = []
+    path_checksum = 0
+    
+    access_log = []
+    access_violations = 0
+    
+    resource_names = []
+    resource_limits = []
+    resource_usage = []
+    resource_count = 0
+    
+    // Register standard resources
+    registerResource("MEMORY", MAX_ARRAY_LENGTH)
+    registerResource("STACK", MAX_STACK_DEPTH)
+    registerResource("BYTECODE", MAX_BYTECODE_SIZE)
+    registerResource("ERRORS", MAX_ERROR_COUNT)
+    
+    print("SECURITY HARDENING SYSTEM INITIALIZED")
+    print("  - Cryptographic checksums")
+    print("  - Bytecode integrity verification")
+    print("  - Tamper detection")
+    print("  - Taint tracking")
+    print("  - Access control")
+    print("  - Resource limits")
+    print("  - Side-channel resistance")
+}

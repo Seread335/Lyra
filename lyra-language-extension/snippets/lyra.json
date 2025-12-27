@@ -1,0 +1,118 @@
+{
+  "Main Function": {
+    "prefix": "main",
+    "body": [
+      "proc main() {",
+      "\t$0",
+      "}"
+    ],
+    "description": "Create a main procedure"
+  },
+  "Print Statement": {
+    "prefix": "println",
+    "body": [
+      "println(\"$0\")"
+    ],
+    "description": "Print with newline"
+  },
+  "Variable Declaration": {
+    "prefix": "var",
+    "body": [
+      "var $1 = $0"
+    ],
+    "description": "Declare a variable"
+  },
+  "If Statement": {
+    "prefix": "if",
+    "body": [
+      "if ($1) {",
+      "\t$0",
+      "}"
+    ],
+    "description": "Create an if statement"
+  },
+  "If-Else Statement": {
+    "prefix": "ifelse",
+    "body": [
+      "if ($1) {",
+      "\t$0",
+      "} else {",
+      "\t",
+      "}"
+    ],
+    "description": "Create an if-else statement"
+  },
+  "Procedure": {
+    "prefix": "proc",
+    "body": [
+      "proc $1() {",
+      "\t$0",
+      "}"
+    ],
+    "description": "Create a procedure"
+  },
+  "File Write": {
+    "prefix": "file.write",
+    "body": [
+      "file.write_file(\"$1\", $0)"
+    ],
+    "description": "Write to file"
+  },
+  "File Read": {
+    "prefix": "file.read",
+    "body": [
+      "file.read_file(\"$0\")"
+    ],
+    "description": "Read from file"
+  },
+  "File Exists": {
+    "prefix": "file.exists",
+    "body": [
+      "file.file_exists(\"$0\")"
+    ],
+    "description": "Check if file exists"
+  },
+  "While Loop": {
+    "prefix": "while",
+    "body": [
+      "while ($1) {",
+      "\t$0",
+      "}"
+    ],
+    "description": "Create a while loop"
+  },
+  "For Loop": {
+    "prefix": "for",
+    "body": [
+      "for ($1; $2; $3) {",
+      "\t$0",
+      "}"
+    ],
+    "description": "Create a for loop"
+  },
+  "Try-Catch": {
+    "prefix": "try",
+    "body": [
+      "try {",
+      "\t$0",
+      "} catch {",
+      "\t",
+      "}"
+    ],
+    "description": "Create a try-catch block"
+  },
+  "Type Conversion": {
+    "prefix": "to_str",
+    "body": [
+      "type.to_str($0)"
+    ],
+    "description": "Convert to string"
+  },
+  "String Length": {
+    "prefix": "strlen",
+    "body": [
+      "string.strlen(\"$0\")"
+    ],
+    "description": "Get string length"
+  }
+}

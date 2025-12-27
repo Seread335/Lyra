@@ -1,0 +1,226 @@
+// ====================================================
+// LYRA DOCUMENTATION GENERATOR - Auto Documentation
+// ====================================================
+// Features:
+//   - Parse code for doc comments
+//   - Generate API documentation
+//   - Create module indexes
+//   - Export to multiple formats
+// ====================================================
+
+fn createDocGenerator() {
+    gen = [
+        [],              // modules
+        [],              // functions
+        [],              // classes
+        "",              // project_name
+        "",              // version
+        0                // doc_count
+    ];
+    return gen;
+}
+
+fn addModuleDoc(gen, moduleName, description) {
+    mod = [moduleName, description, []];  // name, desc, functions
+    arrayPush(gen[0], mod);
+    return gen;
+}
+
+fn addFunctionDoc(gen, moduleName, fnName, params, returns, description) {
+    fn_doc = [
+        fnName,          // name
+        params,          // parameters (array)
+        returns,         // return type
+        description,     // description
+        ""               // examples
+    ];
+    
+    arrayPush(gen[1], fn_doc);
+    gen[5] = gen[5] + 1;
+    
+    return gen;
+}
+
+fn setProjectInfo(gen, projectName, version) {
+    gen[3] = projectName;
+    gen[4] = version;
+    return gen;
+}
+
+fn generateMarkdownDocs(gen) {
+    println("");
+    println("Generating Markdown documentation...");
+    println("");
+    println("# " + gen[3] + " API Documentation");
+    println("Version: " + gen[4]);
+    println("");
+    
+    // Module documentation
+    modules = gen[0];
+    i = 0;
+    while i < arrayLen(modules) {
+        m = modules[i];
+        println("## Module: " + m[0]);
+        println(m[1]);
+        println("");
+        i = i + 1;
+    }
+    
+    // Function documentation
+    functions = gen[1];
+    i = 0;
+    while i < arrayLen(functions) {
+        f = functions[i];
+        println("### Function: " + f[0]);
+        println(f[3]);
+        
+        print("Parameters: ");
+        if arrayLen(f[1]) == 0 {
+            println("(none)");
+        } else {
+            println("");
+            j = 0;
+            while j < arrayLen(f[1]) {
+                print("  - ");
+                println(f[1][j]);
+                j = j + 1;
+            }
+        }
+        
+        println("");
+        print("Returns: ");
+        println(f[2]);
+        println("");
+        
+        i = i + 1;
+    }
+    
+    println("");
+    return 0;
+}
+
+fn generateHTMLDocs(gen) {
+    println("");
+    println("Generating HTML documentation...");
+    println("");
+    println("<!DOCTYPE html>");
+    println("<html>");
+    println("<head>");
+    print("<title>");
+    print(gen[3]);
+    println(" API Documentation</title>");
+    println("</head>");
+    println("<body>");
+    
+    print("<h1>");
+    print(gen[3]);
+    println(" API Documentation</h1>");
+    
+    print("<p>Version: ");
+    print(gen[4]);
+    println("</p>");
+    
+    println("</body>");
+    println("</html>");
+    println("");
+    
+    return 0;
+}
+
+fn generateJSONDocs(gen) {
+    println("");
+    println("Generating JSON documentation...");
+    println("");
+    println("{");
+    print("  \"project\": \"");
+    print(gen[3]);
+    println("\",");
+    print("  \"version\": \"");
+    print(gen[4]);
+    println("\",");
+    print("  \"modules\": ");
+    println(arrayLen(gen[0]));
+    println(", \"functions\": ");
+    println(arrayLen(gen[1]));
+    println("");
+    println("}");
+    println("");
+    
+    return 0;
+}
+
+fn printDocIndex(gen) {
+    println("");
+    println("════════════════════════════════════════");
+    println("DOCUMENTATION INDEX");
+    println("════════════════════════════════════════");
+    println("");
+    
+    print("Project: ");
+    println(gen[3]);
+    print("Version: ");
+    println(gen[4]);
+    println("");
+    
+    print("Modules:   ");
+    println(arrayLen(gen[0]));
+    print("Functions: ");
+    println(arrayLen(gen[1]));
+    print("Classes:   ");
+    println(arrayLen(gen[2]));
+    
+    println("");
+    println("Modules:");
+    modules = gen[0];
+    i = 0;
+    while i < arrayLen(modules) {
+        print("  - ");
+        println(modules[i][0]);
+        i = i + 1;
+    }
+    
+    println("");
+    println("════════════════════════════════════════");
+    println("");
+    
+    return 0;
+}
+
+fn exportDocumentation(gen, format) {
+    println("");
+    println("Exporting documentation in " + format + " format...");
+    
+    if format == "markdown" {
+        generateMarkdownDocs(gen);
+    } else if format == "html" {
+        generateHTMLDocs(gen);
+    } else if format == "json" {
+        generateJSONDocs(gen);
+    } else {
+        println("Unknown format: " + format);
+    }
+    
+    return 0;
+}
+
+fn main() {
+    gen = createDocGenerator();
+    
+    setProjectInfo(gen, "MyLyraProject", "1.0.0");
+    
+    addModuleDoc(gen, "math", "Mathematical utilities and functions");
+    addModuleDoc(gen, "string", "String manipulation functions");
+    addModuleDoc(gen, "array", "Array operations and utilities");
+    
+    addFunctionDoc(gen, "math", "add", ["a", "b"], "number", "Add two numbers");
+    addFunctionDoc(gen, "math", "multiply", ["a", "b"], "number", "Multiply two numbers");
+    addFunctionDoc(gen, "string", "toUpper", ["str"], "string", "Convert string to uppercase");
+    
+    printDocIndex(gen);
+    
+    exportDocumentation(gen, "markdown");
+    
+    return 0;
+}
+
+main();

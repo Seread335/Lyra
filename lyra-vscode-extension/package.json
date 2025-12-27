@@ -1,0 +1,89 @@
+{
+  "name": "lyra-language-support",
+  "displayName": "Lyra Programming Language",
+  "description": "Complete language support for Lyra programming language with syntax highlighting, code snippets, and run capabilities",
+  "version": "1.0.1",
+  "publisher": "Seread",
+  "engines": {
+    "vscode": "^1.84.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Snippets",
+    "Education"
+  ],
+  "keywords": [
+    "lyra",
+    "programming language",
+    "interpreter",
+    "code",
+    "syntax highlighting"
+  ],
+  "icon": "images/icon.png",
+  "galleryBanner": {
+    "color": "#4F46E5",
+    "theme": "dark"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/lyra-vscode"
+  },
+  "homepage": "https://github.com/yourusername/lyra-vscode#readme",
+  "bugs": {
+    "url": "https://github.com/yourusername/lyra-vscode/issues"
+  },
+  "license": "MIT",
+  "activationEvents": [
+    "onLanguage:lyra"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "languages": [
+      {
+        "id": "lyra",
+        "aliases": ["Lyra", "lyra"],
+        "extensions": [".lyra"],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "lyra",
+        "scopeName": "source.lyra",
+        "path": "./syntaxes/lyra.tmLanguage.json"
+      }
+    ],
+    "snippets": [
+      {
+        "language": "lyra",
+        "path": "./snippets/lyra.json"
+      }
+    ],
+    "commands": [
+      {
+        "command": "lyra.runFile",
+        "title": "Lyra: Run File",
+        "category": "Lyra"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "lyra.runFile",
+        "key": "ctrl+shift+enter",
+        "when": "editorTextFocus && editorLangId == lyra"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run build",
+    "build": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "test": "node ./out/test/runTest.js"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.84.0",
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {}
+}

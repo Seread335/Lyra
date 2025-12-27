@@ -1,0 +1,9 @@
+// Example 1: Simple arithmetic
+proc add(x: i32, y: i32) -> i32 {
+    x + y
+}
+
+proc main() {
+    var result: i32 = add(10, 20)
+    io.println(result)
+}
