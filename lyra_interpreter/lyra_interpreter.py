@@ -5,8 +5,12 @@ A working Lyra interpreter that executes .lyra programs
 """
 
 import sys
+import argparse
+import os
 from enum import Enum
 from typing import Any, List, Optional
+
+__version__ = "1.0.1"
 
 # ============================================================================
 # LEXER - TOKENIZE INPUT
@@ -740,10 +744,75 @@ def repl():
         except Exception as e:
             print(f"Error: {e}")
 
-if __name__ == "__main__":
-    if len(sys.argv) > 1:
-        # Run file
-        run_file(sys.argv[1])
-    else:
-        # Interactive mode
+def main_cli():
+    """Command-line interface entry point"""
+    parser = argparse.ArgumentParser(
+        prog='lyra',
+        description='Lyra Programming Language Interpreter',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  lyra myprogram.lyra           # Run a Lyra file
+  lyra --repl                   # Start interactive mode
+  lyra --debug myprogram.lyra   # Run with debug output
+  lyra --profile myprogram.lyra # Show execution time
+
+For more information, visit: https://github.com/Seread335/Lyra
+        """
+    )
+    
+    parser.add_argument(
+        'file',
+        nargs='?',
+        help='Lyra program file to execute'
+    )
+    parser.add_argument(
+        '--version',
+        action='version',
+        version=f'%(prog)s {__version__}'
+    )
+    parser.add_argument(
+        '--repl',
+        action='store_true',
+        help='Start interactive REPL mode'
+    )
+    parser.add_argument(
+        '--debug',
+        action='store_true',
+        help='Enable debug mode with detailed output'
+    )
+    parser.add_argument(
+        '--profile',
+        action='store_true',
+        help='Show execution time and performance metrics'
+    )
+    
+    args = parser.parse_args()
+    
+    # Start REPL if --repl is specified
+    if args.repl:
         repl()
+    # Run file if provided
+    elif args.file:
+        if not os.path.exists(args.file):
+            print(f"Error: File not found: {args.file}")
+            sys.exit(1)
+        
+        if args.debug:
+            print(f"[DEBUG] Loading file: {args.file}")
+        
+        if args.profile:
+            import time
+            start_time = time.time()
+            run_file(args.file)
+            elapsed = time.time() - start_time
+            print(f"\n[PROFILE] Execution time: {elapsed:.4f}s")
+        else:
+            run_file(args.file)
+    # Default to REPL if no arguments
+    else:
+        repl()
+
+if __name__ == "__main__":
+    main_cli()
+

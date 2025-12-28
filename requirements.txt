@@ -1,0 +1,7 @@
+# No external dependencies required for basic Lyra interpreter
+# This file is kept for future extensibility
+
+# Optional: for development
+# pytest>=6.0  # Testing framework
+# black>=21.0  # Code formatter
+# pylint>=2.0  # Code linter
