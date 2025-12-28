@@ -124,6 +124,12 @@ class Lexer:
                     self.next()
                 continue
             
+            # Hash comments (Python-style)
+            if char == '#':
+                while self.pos < len(self.code) and self.code[self.pos] != '\n':
+                    self.next()
+                continue
+            
             # Strings
             if char in ('"', "'"):
                 value = self.scan_string()

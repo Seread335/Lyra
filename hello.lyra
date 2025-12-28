@@ -1,78 +1,41 @@
-# ============================================================
-# LYRA COMPREHENSIVE PROBLEM SOLVER
-# Demonstrates: Functions, Loops, Recursion, and Logic
-# ============================================================
+print("========== LYRA COMPREHENSIVE PROBLEM SOLVER ==========");
 
-print("========== LYRA PROBLEM SOLVER ==========");
-print("");
-
-# ============================================================
-# PROBLEM 1: Prime Number Checker
-# ============================================================
+# Problem 1: Prime Checker
 proc is_prime(n: i32) -> i32 {
-    if n < 2 {
-        return 0;
-    }
+    if n < 2 { return 0; }
     var i: i32 = 2;
     while i * i <= n {
-        if n % i == 0 {
-            return 0;
-        }
+        if n % i == 0 { return 0; }
         i = i + 1;
     }
     return 1;
 }
 
-print("--- Problem 1: Prime Checker ---");
-let prime_17: i32 = is_prime(17);
-let prime_4: i32 = is_prime(4);
-print("Is 17 prime? ");
-print(prime_17);
-print("Is 4 prime? ");
-print(prime_4);
-print("");
+print("Problem 1 - Prime(17):");
+let p1: i32 = is_prime(17);
+print(p1);
 
-# ============================================================
-# PROBLEM 2: Factorial (Recursion)
-# ============================================================
+# Problem 2: Factorial
 proc factorial(n: i32) -> i32 {
-    if n <= 1 {
-        return 1;
-    }
+    if n <= 1 { return 1; }
     return n * factorial(n - 1);
 }
 
-print("--- Problem 2: Factorial ---");
-let fact_5: i32 = factorial(5);
-let fact_10: i32 = factorial(10);
-print("5! = ");
-print(fact_5);
-print("10! = ");
-print(fact_10);
-print("");
+print("Problem 2 - Factorial(5):");
+let p2: i32 = factorial(5);
+print(p2);
 
-# ============================================================
-# PROBLEM 3: GCD
-# ============================================================
+# Problem 3: GCD
 proc gcd(a: i32, b: i32) -> i32 {
-    if b == 0 {
-        return a;
-    }
+    if b == 0 { return a; }
     return gcd(b, a % b);
 }
 
-print("--- Problem 3: GCD ---");
-let gcd_48_18: i32 = gcd(48, 18);
-let gcd_100_60: i32 = gcd(100, 60);
-print("GCD(48, 18) = ");
-print(gcd_48_18);
-print("GCD(100, 60) = ");
-print(gcd_100_60);
-print("");
+print("Problem 3 - GCD(48,18):");
+let p3: i32 = gcd(48, 18);
+print(p3);
 
-# ============================================================
-# PROBLEM 4: Sum of Range
-# ============================================================
+# Problem 4: Sum Range
 proc sum_range(start: i32, end: i32) -> i32 {
     var sum: i32 = 0;
     var current: i32 = start;
@@ -83,145 +46,78 @@ proc sum_range(start: i32, end: i32) -> i32 {
     return sum;
 }
 
-print("--- Problem 4: Sum of Range ---");
-let sum_1_10: i32 = sum_range(1, 10);
-let sum_1_100: i32 = sum_range(1, 100);
-print("Sum(1 to 10) = ");
-print(sum_1_10);
-print("Sum(1 to 100) = ");
-print(sum_1_100);
-print("");
+print("Problem 4 - Sum(1,10):");
+let p4: i32 = sum_range(1, 10);
+print(p4);
 
-# ============================================================
-# PROBLEM 5: Fibonacci
-# ============================================================
+# Problem 5: Fibonacci
 proc fibonacci(n: i32) -> i32 {
-    if n <= 1 {
-        return n;
-    }
+    if n <= 1 { return n; }
     return fibonacci(n - 1) + fibonacci(n - 2);
 }
 
-print("--- Problem 5: Fibonacci ---");
-let fib_8: i32 = fibonacci(8);
-let fib_10: i32 = fibonacci(10);
-print("Fib(8) = ");
-print(fib_8);
-print("Fib(10) = ");
-print(fib_10);
-print("");
+print("Problem 5 - Fibonacci(10):");
+let p5: i32 = fibonacci(10);
+print(p5);
 
-# ============================================================
-# PROBLEM 6: Power Function
-# ============================================================
+# Problem 6: Power
 proc power(base: i32, exp: i32) -> i32 {
-    if exp == 0 {
-        return 1;
-    }
+    if exp == 0 { return 1; }
     return base * power(base, exp - 1);
 }
 
-print("--- Problem 6: Power ---");
-let pow_2_8: i32 = power(2, 8);
-let pow_3_5: i32 = power(3, 5);
-print("2^8 = ");
-print(pow_2_8);
-print("3^5 = ");
-print(pow_3_5);
-print("");
+print("Problem 6 - Power(2,8):");
+let p6: i32 = power(2, 8);
+print(p6);
 
-# ============================================================
-# PROBLEM 7: Calculator
-# ============================================================
-proc add(a: i32, b: i32) -> i32 {
-    return a + b;
-}
+# Problem 7: Calculator
+proc add(a: i32, b: i32) -> i32 { return a + b; }
+proc multiply(a: i32, b: i32) -> i32 { return a * b; }
 
-proc subtract(a: i32, b: i32) -> i32 {
-    return a - b;
-}
+print("Problem 7 - Add(15,25):");
+let p7a: i32 = add(15, 25);
+print(p7a);
+print("Problem 7 - Multiply(6,7):");
+let p7b: i32 = multiply(6, 7);
+print(p7b);
 
-proc multiply(a: i32, b: i32) -> i32 {
-    return a * b;
-}
-
-proc divide(a: i32, b: i32) -> i32 {
-    return a / b;
-}
-
-print("--- Problem 7: Calculator ---");
-let add_result: i32 = add(15, 25);
-let sub_result: i32 = subtract(50, 20);
-let mul_result: i32 = multiply(6, 7);
-let div_result: i32 = divide(100, 4);
-print("15 + 25 = ");
-print(add_result);
-print("50 - 20 = ");
-print(sub_result);
-print("6 * 7 = ");
-print(mul_result);
-print("100 / 4 = ");
-print(div_result);
-print("");
-
-# ============================================================
-# PROBLEM 8: Max and Min
-# ============================================================
+# Problem 8: Max/Min
 proc max(a: i32, b: i32) -> i32 {
-    if a > b {
-        return a;
-    }
+    if a > b { return a; }
     return b;
 }
 
 proc min(a: i32, b: i32) -> i32 {
-    if a < b {
-        return a;
-    }
+    if a < b { return a; }
     return b;
 }
 
-print("--- Problem 8: Max and Min ---");
-let max_45_32: i32 = max(45, 32);
-let min_45_32: i32 = min(45, 32);
-let max_100_200: i32 = max(100, 200);
-print("Max(45, 32) = ");
-print(max_45_32);
-print("Min(45, 32) = ");
-print(min_45_32);
-print("Max(100, 200) = ");
-print(max_100_200);
-print("");
+print("Problem 8 - Max(45,32):");
+let p8a: i32 = max(45, 32);
+print(p8a);
+print("Problem 8 - Min(45,32):");
+let p8b: i32 = min(45, 32);
+print(p8b);
 
-# ============================================================
-# PROBLEM 9: Even/Odd
-# ============================================================
+# Problem 9: Even/Odd Checkers
 proc is_even(n: i32) -> i32 {
-    if n % 2 == 0 {
-        return 1;
-    }
+    if n % 2 == 0 { return 1; }
     return 0;
 }
 
 proc is_odd(n: i32) -> i32 {
-    if n % 2 == 1 {
-        return 1;
-    }
+    if n % 2 == 1 { return 1; }
     return 0;
 }
 
-print("--- Problem 9: Even/Odd ---");
-let even_4: i32 = is_even(4);
-let odd_7: i32 = is_odd(7);
-print("Is 4 even? ");
-print(even_4);
-print("Is 7 odd? ");
-print(odd_7);
-print("");
+print("Problem 9 - Even(4):");
+let p9a: i32 = is_even(4);
+print(p9a);
+print("Problem 9 - Odd(7):");
+let p9b: i32 = is_odd(7);
+print(p9b);
 
-# ============================================================
-# PROBLEM 10: Loop Patterns
-# ============================================================
+# Problem 10: Count Pattern
 proc count_to(n: i32) {
     var i: i32 = 1;
     while i <= n {
@@ -231,11 +127,14 @@ proc count_to(n: i32) {
     }
 }
 
-print("--- Problem 10: Loop Patterns ---");
-count_to(5);
-print("");
+print("Problem 10 - Count(3):");
+count_to(3);
 
-print("========== ALL PROBLEMS COMPLETED ==========");
+print("========== COMPLETED ==========");
+
+
+
+
 
 
 

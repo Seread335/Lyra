@@ -1,0 +1,14 @@
+print("Test 1");
+
+proc count_to(n: i32) {
+    var i: i32 = 1;
+    while i <= n {
+        print("Count: ");
+        print(i);
+        i = i + 1;
+    }
+}
+
+print("Test 2");
+count_to(3);
+print("Test 3");

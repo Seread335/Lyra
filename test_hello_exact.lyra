@@ -1,0 +1,38 @@
+print("========== LYRA COMPREHENSIVE PROBLEM SOLVER ==========");
+
+# Problem 1: Prime Checker
+proc is_prime(n: i32) -> i32 {
+    if n < 2 { return 0; }
+    var i: i32 = 2;
+    while i * i <= n {
+        if n % i == 0 { return 0; }
+        i = i + 1;
+    }
+    return 1;
+}
+
+print("Problem 1:");
+let p1: i32 = is_prime(17);
+print(p1);
+
+# Problem 2: Factorial
+proc factorial(n: i32) -> i32 {
+    if n <= 1 { return 1; }
+    return n * factorial(n - 1);
+}
+
+print("Problem 2:");
+let p2: i32 = factorial(5);
+print(p2);
+
+# Problem 3: GCD
+proc gcd(a: i32, b: i32) -> i32 {
+    if b == 0 { return a; }
+    return gcd(b, a % b);
+}
+
+print("Problem 3:");
+let p3: i32 = gcd(48, 18);
+print(p3);
+
+print("Done");
