@@ -1,0 +1,76 @@
+# Performance Benchmark Tests for Lyra
+
+# Test 1: Prime Checking Performance
+proc is_prime(n: i32) -> i32 {
+    if n < 2 { return 0; }
+    var i: i32 = 2;
+    while i * i <= n {
+        if n % i == 0 { return 0; }
+        i = i + 1;
+    }
+    return 1;
+}
+
+print("=== Performance Benchmark Tests ===");
+print("Test 1: Prime Number Checking");
+let prime_count: i32 = 0;
+var p: i32 = 2;
+while p <= 100 {
+    let result: i32 = is_prime(p);
+    if result == 1 { prime_count = prime_count + 1; }
+    p = p + 1;
+}
+print("Primes from 2-100:");
+print(prime_count);
+
+# Test 2: Fibonacci Performance (smaller number)
+proc fib(n: i32) -> i32 {
+    if n <= 1 { return n; }
+    return fib(n - 1) + fib(n - 2);
+}
+
+print("Test 2: Fibonacci Calculation");
+let fib_result: i32 = fib(20);
+print("fib(20) =");
+print(fib_result);
+
+# Test 3: Factorial Chain
+proc fact(n: i32) -> i32 {
+    if n <= 1 { return 1; }
+    return n * fact(n - 1);
+}
+
+print("Test 3: Factorial Series");
+var f: i32 = 1;
+while f <= 10 {
+    let result: i32 = fact(f);
+    print("fact(");
+    print(f);
+    print(") = ");
+    print(result);
+    f = f + 1;
+}
+
+# Test 4: Loop Performance
+print("Test 4: Loop Performance (count to 100)");
+var counter: i32 = 0;
+var i: i32 = 0;
+while i < 100 {
+    counter = counter + 1;
+    i = i + 1;
+}
+print("Completed 100 iterations");
+print(counter);
+
+# Test 5: Recursive Depth Test
+proc depth_test(n: i32) -> i32 {
+    if n <= 0 { return 1; }
+    return 1 + depth_test(n - 1);
+}
+
+print("Test 5: Recursion Depth (50 levels)");
+let depth_result: i32 = depth_test(50);
+print("Recursion depth result:");
+print(depth_result);
+
+print("=== All Benchmarks Complete ===");
