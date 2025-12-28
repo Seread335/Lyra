@@ -1,0 +1,6 @@
+proc add(a: i32) -> i32 {
+    return a;
+}
+
+let x: i32 = add(5);
+print(x);

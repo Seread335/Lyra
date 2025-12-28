@@ -1,0 +1,57 @@
+print("Test");
+
+proc is_prime(n: i32) -> i32 {
+    if n < 2 {
+        return 0;
+    }
+    var i: i32 = 2;
+    while i * i <= n {
+        if n % i == 0 {
+            return 0;
+        }
+        i = i + 1;
+    }
+    return 1;
+}
+
+proc factorial(n: i32) -> i32 {
+    if n <= 1 {
+        return 1;
+    }
+    return n * factorial(n - 1);
+}
+
+proc gcd(a: i32, b: i32) -> i32 {
+    if b == 0 {
+        return a;
+    }
+    return gcd(b, a % b);
+}
+
+proc sum_range(start: i32, end: i32) -> i32 {
+    var sum: i32 = 0;
+    var current: i32 = start;
+    while current <= end {
+        sum = sum + current;
+        current = current + 1;
+    }
+    return sum;
+}
+
+proc fibonacci(n: i32) -> i32 {
+    if n <= 1 {
+        return n;
+    }
+    return fibonacci(n - 1) + fibonacci(n - 2);
+}
+
+proc power(base: i32, exp: i32) -> i32 {
+    if exp == 0 {
+        return 1;
+    }
+    return base * power(base, exp - 1);
+}
+
+print("All functions defined");
+let p: i32 = is_prime(17);
+print(p);

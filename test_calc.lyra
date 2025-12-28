@@ -1,0 +1,18 @@
+proc add(a: i32, b: i32) -> i32 {
+    return a + b;
+}
+
+proc subtract(a: i32, b: i32) -> i32 {
+    return a - b;
+}
+
+proc multiply(a: i32, b: i32) -> i32 {
+    return a * b;
+}
+
+proc divide(a: i32, b: i32) -> i32 {
+    return a / b;
+}
+
+let r: i32 = add(10, 20);
+print(r);

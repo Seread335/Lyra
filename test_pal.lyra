@@ -1,0 +1,10 @@
+proc is_palindrome(n: i32) -> i32 {
+    let reversed: i32 = 5;
+    if n == reversed {
+        return 1;
+    }
+    return 0;
+}
+
+let result: i32 = is_palindrome(5);
+print(result);

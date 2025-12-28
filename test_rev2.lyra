@@ -1,0 +1,13 @@
+proc reverse_number(n: i32) -> i32 {
+    var reversed: i32 = 0;
+    var temp: i32 = n;
+    while temp > 0 {
+        let digit: i32 = temp % 10;
+        reversed = reversed * 10 + digit;
+        temp = temp / 10;
+    }
+    return reversed;
+}
+
+let result: i32 = reverse_number(123);
+print(result);

@@ -44,7 +44,7 @@ class Token:
         return f"Token({self.type.name}, {self.value!r})"
 
 class Lexer:
-    KEYWORDS = {'var', 'proc', 'if', 'else', 'while', 'for', 'return', 
+    KEYWORDS = {'let', 'var', 'proc', 'if', 'else', 'while', 'for', 'return', 
                 'true', 'false', 'print', 'break', 'continue', 'in'}
     OPERATORS = {'+', '-', '*', '/', '%', '==', '!=', '<', '>', '<=', '>=',
                  '&&', '||', '!', '=', '+=', '-=', '*=', '/='}
@@ -332,7 +332,7 @@ class Parser:
     def parse_statement(self) -> Any:
         if self.peek().type == TokenType.KEYWORD:
             keyword = self.peek().value
-            if keyword == 'var':
+            if keyword == 'var' or keyword == 'let':
                 return self.parse_var_decl()
             elif keyword == 'proc':
                 return self.parse_proc()
@@ -349,8 +349,10 @@ class Parser:
                     self.next()
                 return ReturnStmt(expr)
         
-        # Try assignment
+        # Try assignment or expression
         if self.peek().type == TokenType.IDENTIFIER:
+            # Look ahead to see if it's an assignment
+            saved_pos = self.pos  # Save position
             name = self.next().value
             if self.peek().type == TokenType.EQUALS:
                 self.next()
@@ -358,6 +360,9 @@ class Parser:
                 if self.peek().type == TokenType.SEMICOLON:
                     self.next()
                 return Assignment(name, value)
+            else:
+                # Not an assignment, restore position and parse as expression
+                self.pos = saved_pos
         
         # Try expression statement
         expr = self.parse_expression()
@@ -366,7 +371,7 @@ class Parser:
         return expr
     
     def parse_var_decl(self):
-        self.expect(TokenType.KEYWORD)  # 'var'
+        self.expect(TokenType.KEYWORD)  # 'var' or 'let'
         name = self.expect(TokenType.IDENTIFIER).value
         self.expect(TokenType.COLON)
         type_name = self.expect(TokenType.IDENTIFIER).value
@@ -389,15 +394,16 @@ class Parser:
         params = []
         while self.peek().type != TokenType.RPAREN:
             param_name = self.expect(TokenType.IDENTIFIER).value
+            param_type = None
             if self.peek().type == TokenType.COLON:
                 self.next()
-                self.expect(TokenType.IDENTIFIER)  # parameter type
+                param_type = self.expect(TokenType.IDENTIFIER).value  # parameter type
             params.append(param_name)
             if self.peek().type == TokenType.COMMA:
                 self.next()
         self.expect(TokenType.RPAREN)
         
-        return_type = "i32"
+        return_type = None
         if self.peek().type == TokenType.OPERATOR and self.peek().value == '->':
             self.next()
             return_type = self.expect(TokenType.IDENTIFIER).value

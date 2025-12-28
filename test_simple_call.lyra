@@ -1,0 +1,6 @@
+proc test() {
+    print("Inside function");
+}
+
+test();
+print("Done");
