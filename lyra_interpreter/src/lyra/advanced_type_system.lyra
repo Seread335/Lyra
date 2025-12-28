@@ -1,0 +1,358 @@
+// ============================================================================
+// LYRA NNLT v2.3.22.2 - ADVANCED TYPE SYSTEM
+// ============================================================================
+// Generics, Optional types, Result types, Type constraints
+
+// ============================================================================
+// GLOBAL TYPE REGISTRY
+// ============================================================================
+
+var type_registry: [str]
+var type_definitions: [str]
+var type_constraints: [str]
+var generic_types: [str]
+var type_count: i32 = 0
+
+// ============================================================================
+// PART 1: GENERIC TYPES (PARAMETRIC POLYMORPHISM)
+// ============================================================================
+
+// Register generic type definition
+proc registerGenericType(type_name: str, type_params: [str], fields: [str]) {
+    if type_count >= 1000 return
+    
+    insert(type_registry, type_name)
+    
+    // Store as: "TypeName<T,U>{field1:T, field2:U}"
+    var full_def = type_name + "<"
+    var i = 0
+    while i < length(type_params) {
+        if i > 0 { full_def = full_def + "," }
+        full_def = full_def + type_params[i]
+        i = i + 1
+    }
+    full_def = full_def + ">"
+    
+    insert(type_definitions, full_def)
+    type_count = type_count + 1
+}
+
+// Example: Array<T> generic type
+proc initArrayGeneric() {
+    var params: [str]
+    insert(params, "T")
+    
+    var fields: [str]
+    insert(fields, "data:[T]")
+    insert(fields, "length:i32")
+    
+    registerGenericType("Array", params, fields)
+}
+
+// Example: Map<K, V> generic type
+proc initMapGeneric() {
+    var params: [str]
+    insert(params, "K")
+    insert(params, "V")
+    
+    var fields: [str]
+    insert(fields, "keys:[K]")
+    insert(fields, "values:[V]")
+    insert(fields, "size:i32")
+    
+    registerGenericType("Map", params, fields)
+}
+
+// Example: Stack<T> generic type
+proc initStackGeneric() {
+    var params: [str]
+    insert(params, "T")
+    
+    var fields: [str]
+    insert(fields, "items:[T]")
+    insert(fields, "top:i32")
+    
+    registerGenericType("Stack", params, fields)
+}
+
+// ============================================================================
+// PART 2: OPTIONAL TYPE (T? or Option<T>)
+// ============================================================================
+
+// Option<T> = some(T) | none
+var option_some_values: [str]
+var option_is_some: [bool]
+var option_count: i32 = 0
+
+// Create some(value)
+proc some<T>(value: str) -> str {
+    insert(option_some_values, value)
+    insert(option_is_some, true)
+    option_count = option_count + 1
+    return "some:" + value
+}
+
+// Create none
+proc none() -> str {
+    insert(option_some_values, "")
+    insert(option_is_some, false)
+    option_count = option_count + 1
+    return "none"
+}
+
+// Check if Option has value
+proc isSome(opt: str) -> bool {
+    if length(opt) < 5 return false
+    var prefix = substring(opt, 0, 5)
+    return prefix == "some:"
+}
+
+// Get value from Option (with default)
+proc getOrElse(opt: str, default_val: str) -> str {
+    if isSome(opt) {
+        return substring(opt, 5, length(opt) - 5)
+    }
+    return default_val
+}
+
+// Map over Option
+proc mapOption(opt: str, f: str) -> str {
+    if isSome(opt) {
+        var val = substring(opt, 5, length(opt) - 5)
+        // Would apply function f here
+        return some(val)
+    }
+    return none()
+}
+
+// ============================================================================
+// PART 3: RESULT TYPE (Result<T, E>)
+// ============================================================================
+
+// Result<T, E> = success(T) | failure(E)
+var result_values: [str]
+var result_is_ok: [bool]
+var result_errors: [str]
+var result_count: i32 = 0
+
+// Create success(value)
+proc success(value: str) -> str {
+    insert(result_values, value)
+    insert(result_is_ok, true)
+    insert(result_errors, "")
+    result_count = result_count + 1
+    return "ok:" + value
+}
+
+// Create failure(error)
+proc failure(error: str) -> str {
+    insert(result_values, "")
+    insert(result_is_ok, false)
+    insert(result_errors, error)
+    result_count = result_count + 1
+    return "err:" + error
+}
+
+// Check if Result is ok
+proc isOk(res: str) -> bool {
+    if length(res) < 3 return false
+    var prefix = substring(res, 0, 3)
+    return prefix == "ok:"
+}
+
+// Get success value
+proc unwrap(res: str) -> str {
+    if isOk(res) {
+        return substring(res, 3, length(res) - 3)
+    }
+    setErrorQuick(ERR_VAL_CONSTRAINT_VIOLATION, "Cannot unwrap error result")
+    return ""
+}
+
+// Get error message
+proc errorMessage(res: str) -> str {
+    if !isOk(res) {
+        return substring(res, 4, length(res) - 4)
+    }
+    return ""
+}
+
+// Result map
+proc mapResult(res: str, f: str) -> str {
+    if isOk(res) {
+        var val = substring(res, 3, length(res) - 3)
+        return success(val)
+    }
+    return res
+}
+
+// Result flatMap (monadic bind)
+proc flatMapResult(res: str, f: str) -> str {
+    if isOk(res) {
+        // Would apply function f here
+        return res
+    }
+    return res
+}
+
+// ============================================================================
+// PART 4: TYPE INFERENCE ENHANCEMENT
+// ============================================================================
+
+var inferred_types: [str]
+var inferred_names: [str]
+var inference_count: i32 = 0
+
+// Register type inference rule
+proc registerTypeInference(var_name: str, inferred_type: str) {
+    if inference_count >= 1000 return
+    
+    insert(inferred_names, var_name)
+    insert(inferred_types, inferred_type)
+    inference_count = inference_count + 1
+}
+
+// Infer type from value
+proc inferTypeFromValue(value: str) -> str {
+    // Check for numeric literal
+    if length(value) > 0 {
+        var first = value[0]
+        if (first >= "0" && first <= "9") || first == "-" {
+            return "i32"
+        }
+    }
+    
+    // Check for string literal
+    if length(value) > 0 && value[0] == "\"" {
+        return "str"
+    }
+    
+    // Check for boolean
+    if value == "true" || value == "false" {
+        return "bool"
+    }
+    
+    // Check for array
+    if length(value) > 0 && value[0] == "[" {
+        return "[T]"  // Placeholder until insert() provides element type
+    }
+    
+    return "unknown"
+}
+
+// Bidirectional type inference
+proc inferTypeContext(var_name: str, usage_type: str) -> str {
+    // If used as number, infer i32
+    // If used as string, infer str
+    // If used in array, infer [usage_type]
+    return usage_type
+}
+
+// ============================================================================
+// PART 5: TYPE CONSTRAINTS & BOUNDS
+// ============================================================================
+
+var constraints: [str]
+var constraint_types: [str]
+var constraint_count: i32 = 0
+
+// Register type constraint (trait bounds)
+proc addTypeConstraint(type_var: str, constraint: str) {
+    if constraint_count >= 1000 return
+    
+    insert(constraint_types, type_var)
+    insert(constraints, constraint)
+    constraint_count = constraint_count + 1
+}
+
+// Validate type against constraint
+proc validateTypeConstraint(type_name: str, constraint: str) -> bool {
+    // Constraint examples:
+    // "Printable" - must have print() method
+    // "Comparable" - must support <, >, ==
+    // "Copyable" - must be copyable
+    
+    if constraint == "Printable" {
+        // Check if type has print() method
+        return true  // Simplified
+    }
+    
+    if constraint == "Comparable" {
+        // Check if type has comparison operators
+        return true  // Simplified
+    }
+    
+    return true
+}
+
+// ============================================================================
+// PART 6: PATTERN MATCHING ON TYPES
+// ============================================================================
+
+// Simple pattern match implementation
+proc patternMatch(value: str, patterns: [str]) -> str {
+    var i = 0
+    while i < length(patterns) {
+        var pattern = patterns[i]
+        
+        // Literal pattern
+        if value == pattern {
+            return "matched:" + tostring(i)
+        }
+        
+        // Wildcard pattern
+        if pattern == "_" {
+            return "matched:" + tostring(i)
+        }
+        
+        i = i + 1
+    }
+    
+    return "no_match"
+}
+
+// Pattern match on Option
+proc matchOption(opt: str, some_handler: str, none_handler: str) -> str {
+    if isSome(opt) {
+        var val = substring(opt, 5, length(opt) - 5)
+        return some_handler + ":" + val
+    }
+    return none_handler
+}
+
+// Pattern match on Result
+proc matchResult(res: str, ok_handler: str, err_handler: str) -> str {
+    if isOk(res) {
+        var val = substring(res, 3, length(res) - 3)
+        return ok_handler + ":" + val
+    }
+    var err = substring(res, 4, length(res) - 4)
+    return err_handler + ":" + err
+}
+
+// ============================================================================
+// INITIALIZATION
+// ============================================================================
+
+proc initAdvancedTypeSystem() {
+    initArrayGeneric()
+    initMapGeneric()
+    initStackGeneric()
+    
+    print("ADVANCED TYPE SYSTEM INITIALIZED")
+    print("  ✓ Generic types registered")
+    print("  ✓ Optional types available")
+    print("  ✓ Result types available")
+    print("  ✓ Pattern matching ready")
+    print("  ✓ Type constraints ready")
+}
+
+// Diagnostics
+proc dumpTypeSystemState() {
+    print("=== TYPE SYSTEM STATE ===")
+    print("Registered types: " + tostring(type_count))
+    print("Type inferences: " + tostring(inference_count))
+    print("Type constraints: " + tostring(constraint_count))
+    print("Option instances: " + tostring(option_count))
+    print("Result instances: " + tostring(result_count))
+}

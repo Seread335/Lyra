@@ -26,13 +26,16 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/lyra-vscode"
+    "url": "https://github.com/Seread335/Lyra.git"
   },
   "homepage": "https://github.com/yourusername/lyra-vscode#readme",
   "bugs": {
     "url": "https://github.com/yourusername/lyra-vscode/issues"
   },
   "license": "MIT",
+  "author": "Lyra Development Team",
+  "maintainers": ["Seread"],
+  "readmeFilename": "README.md",
   "activationEvents": [
     "onLanguage:lyra"
   ],

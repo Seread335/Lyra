@@ -1,0 +1,373 @@
+// ============================================================================
+// LYRA VM ERROR INTEGRATION - HOOK ERROR SYSTEM INTO BYTECODE VM
+// ============================================================================
+// Tích hợp hệ thống lỗi rõ ràng vào Bytecode VM
+// Đảm bảo mọi lỗi đều được báo cáo một cách chi tiết
+
+// ============================================================================
+// IMPORTS & INITIALIZATION
+// ============================================================================
+
+// Requires: error_system_clear.lyra to be loaded first
+
+proc vmErrorSystemInit() {
+    errorSystemInit()
+    print("[VM] Error integration layer initialized")
+    print("")
+}
+
+// ============================================================================
+// VM INSTRUCTION VALIDATION
+// ============================================================================
+
+proc vmValidateOpcode(opcode: str, pc: i32) -> bool {
+    // Check if opcode is valid
+    var valid_opcodes = ["PUSH", "POP", "ADD", "SUB", "MUL", "DIV", "MOD",
+                         "AND", "OR", "XOR", "NOT", "LOAD", "STORE",
+                         "JUMP", "JUMPIT", "JUMPIF", "CALL", "RETURN",
+                         "HALT", "PRINT", "INPUT", "INSERT", "REMOVE",
+                         "LENGTH", "CMP", "LOADC", "STOREV"]
+    
+    var i = 0
+    var found = false
+    while i < length(valid_opcodes) {
+        if opcode == valid_opcodes[i] {
+            found = true
+            break
+        }
+        i = i + 1
+    }
+    
+    if !found {
+        errorReportError(ERR_RUNTIME_INVALID_OPCODE,
+                        "Invalid opcode encountered",
+                        "bytecode_vm.lyra", pc,
+                        "Opcode: " + opcode + " at PC=" + tostring(pc))
+        return false
+    }
+    
+    return true
+}
+
+// ============================================================================
+// STACK OPERATIONS WITH ERROR CHECKING
+// ============================================================================
+
+proc vmPushWithCheck(stack: [str], value: str) -> bool {
+    // Check stack won't overflow
+    if length(stack) >= 65536 {
+        errorReportCritical(ERR_RUNTIME_STACK_OVERFLOW,
+                           "Stack overflow during PUSH",
+                           "bytecode_vm.lyra", 0,
+                           "Stack depth: " + tostring(length(stack)) + 
+                           ", Max: 65536")
+        return false
+    }
+    
+    insert(stack, value)
+    return true
+}
+
+proc vmPopWithCheck(stack: [str]) -> str {
+    // Check stack won't underflow
+    if length(stack) == 0 {
+        errorReportCritical(ERR_RUNTIME_STACK_UNDERFLOW,
+                           "Stack underflow during POP",
+                           "bytecode_vm.lyra", 0,
+                           "Attempted to pop from empty stack")
+        return ""
+    }
+    
+    // Pop and return
+    var value = stack[length(stack) - 1]
+    remove(stack, length(stack) - 1)
+    return value
+}
+
+// ============================================================================
+// ARITHMETIC OPERATIONS WITH ERROR CHECKING
+// ============================================================================
+
+proc vmDivideWithCheck(a: i32, b: i32) -> i32 {
+    if b == 0 {
+        errorReportError(ERR_RUNTIME_DIVIDE_BY_ZERO,
+                        "Division by zero",
+                        "bytecode_vm.lyra", 0,
+                        "Numerator: " + tostring(a) + ", Divisor: 0")
+        return 0
+    }
+    
+    return a / b
+}
+
+proc vmModuloWithCheck(a: i32, b: i32) -> i32 {
+    if b == 0 {
+        errorReportError(ERR_RUNTIME_DIVIDE_BY_ZERO,
+                        "Modulo by zero",
+                        "bytecode_vm.lyra", 0,
+                        "Numerator: " + tostring(a) + ", Divisor: 0")
+        return 0
+    }
+    
+    return a % b
+}
+
+// ============================================================================
+// ARRAY BOUNDS CHECKING
+// ============================================================================
+
+proc vmCheckArrayBounds(array: [str], index: i32, operation: str) -> bool {
+    // Check for negative index
+    if index < 0 {
+        errorReportError(ERR_BOUNDS_ARRAY_INDEX_NEGATIVE,
+                        "Array index is negative",
+                        "bytecode_vm.lyra", 0,
+                        operation + " attempted at index " + tostring(index) +
+                        ", array length: " + tostring(length(array)))
+        return false
+    }
+    
+    // Check for out of bounds
+    if index >= length(array) {
+        errorReportError(ERR_BOUNDS_ARRAY_INDEX_OUT_OF_RANGE,
+                        "Array index out of bounds",
+                        "bytecode_vm.lyra", 0,
+                        operation + " attempted at index " + tostring(index) +
+                        ", array length: " + tostring(length(array)))
+        return false
+    }
+    
+    return true
+}
+
+proc vmCheckArrayBoundsForInsert(array: [str], index: i32) -> bool {
+    // For insert, index can be equal to length (append)
+    if index < 0 {
+        errorReportError(ERR_BOUNDS_ARRAY_INDEX_NEGATIVE,
+                        "Array index is negative",
+                        "bytecode_vm.lyra", 0,
+                        "INSERT attempted at index " + tostring(index))
+        return false
+    }
+    
+    if index > length(array) {
+        errorReportError(ERR_BOUNDS_ARRAY_INDEX_OUT_OF_RANGE,
+                        "Array insert index out of bounds",
+                        "bytecode_vm.lyra", 0,
+                        "INSERT attempted at index " + tostring(index) +
+                        ", array length: " + tostring(length(array)))
+        return false
+    }
+    
+    return true
+}
+
+// ============================================================================
+// TYPE VALIDATION
+// ============================================================================
+
+proc vmValidateType(value: str, expected_type: str) -> bool {
+    // Simple type checking (based on value content)
+    if expected_type == "i32" {
+        // Check if value is a valid integer
+        // For now, accept any string
+        return true
+    }
+    
+    if expected_type == "f64" {
+        // Check if value is a valid float
+        return true
+    }
+    
+    if expected_type == "str" {
+        // String type accepts anything
+        return true
+    }
+    
+    if expected_type == "bool" {
+        // Boolean must be "true" or "false"
+        if value == "true" || value == "false" {
+            return true
+        }
+        errorReportError(ERR_TYPE_MISMATCH,
+                        "Type mismatch for boolean",
+                        "bytecode_vm.lyra", 0,
+                        "Expected: bool, Got: " + value)
+        return false
+    }
+    
+    return true
+}
+
+// ============================================================================
+// MEMORY OPERATION VALIDATION
+// ============================================================================
+
+proc vmValidateMemoryWrite(address: i32, size: i32) -> bool {
+    // Simple validation - in real system would check actual memory ranges
+    if address < 0 {
+        errorReportError(ERR_SECURITY_INVALID_POINTER,
+                        "Invalid memory address for write",
+                        "bytecode_vm.lyra", 0,
+                        "Address: " + tostring(address))
+        return false
+    }
+    
+    if size <= 0 {
+        errorReportError(ERR_MEMORY_ALLOCATION_FAILED,
+                        "Invalid write size",
+                        "bytecode_vm.lyra", 0,
+                        "Size: " + tostring(size))
+        return false
+    }
+    
+    return true
+}
+
+// ============================================================================
+// EXECUTION VALIDATION
+// ============================================================================
+
+proc vmValidatePC(pc: i32, max_pc: i32) -> bool {
+    if pc < 0 || pc >= max_pc {
+        errorReportCritical(ERR_RUNTIME_INVALID_PC,
+                           "Program counter out of bounds",
+                           "bytecode_vm.lyra", 0,
+                           "PC: " + tostring(pc) + ", Max: " + tostring(max_pc))
+        return false
+    }
+    
+    return true
+}
+
+proc vmDetectInfiniteLoop(iterations: i32, max_iterations: i32) -> bool {
+    if iterations >= max_iterations {
+        errorReportCritical(ERR_RUNTIME_INFINITE_LOOP,
+                           "Infinite loop detected (max iterations exceeded)",
+                           "bytecode_vm.lyra", 0,
+                           "Iterations: " + tostring(iterations) +
+                           ", Max: " + tostring(max_iterations))
+        return false
+    }
+    
+    return true
+}
+
+// ============================================================================
+// RUNTIME MONITORING & REPORTING
+// ============================================================================
+
+proc vmReportExecution(pc: i32, opcode: str, stack_depth: i32) {
+    // This function can be called periodically to monitor execution
+    // Uncomment for detailed tracing:
+    // print("PC=" + tostring(pc) + " OPCODE=" + opcode + " STACK=" + tostring(stack_depth))
+}
+
+// ============================================================================
+// ERROR SUMMARY BEFORE EXIT
+// ============================================================================
+
+proc vmPrintErrorSummaryOnExit() {
+    if error_total_count > 0 {
+        print("")
+        print("================================================================================")
+        print("EXECUTION COMPLETED WITH ERRORS")
+        print("================================================================================")
+        errorPrintStatistics()
+        print("")
+        
+        // Print last 10 errors
+        if error_total_count > 0 {
+            print("Last errors:")
+            print(errorGetLastErrors(10))
+            print("")
+        }
+    }
+}
+
+// ============================================================================
+// SAFE WRAPPER FOR BYTECODE EXECUTION
+// ============================================================================
+
+proc vmExecuteWithErrorHandling(bytecode: [str], max_iterations: i32) -> i32 {
+    print("[VM] Starting execution with error handling")
+    print("[VM] Max iterations: " + tostring(max_iterations))
+    print("")
+    
+    var iterations = 0
+    var pc = 0
+    var halted = false
+    
+    // Initialize error system
+    errorSystemInit()
+    
+    var stack: [str] = []
+    
+    while iterations < max_iterations && !halted && !errorHasError() {
+        // Check PC validity
+        if !vmValidatePC(pc, length(bytecode)) {
+            break
+        }
+        
+        // Get current instruction
+        var instruction = bytecode[pc]
+        var opcode = instruction
+        
+        // Validate opcode
+        if !vmValidateOpcode(opcode, pc) {
+            break
+        }
+        
+        // Execute instruction (simplified)
+        if opcode == "HALT" {
+            halted = true
+            print("HALT executed at PC=" + tostring(pc))
+        }
+        else if opcode == "PUSH" {
+            // Simplified: would normally push constant from bytecode[pc+1]
+            if !vmPushWithCheck(stack, "0") {
+                break
+            }
+        }
+        else if opcode == "POP" {
+            var value = vmPopWithCheck(stack)
+            if errorHasError() {
+                break
+            }
+        }
+        else if opcode == "ADD" {
+            // Would do real addition
+            if length(stack) < 2 {
+                errorReportError(ERR_RUNTIME_STACK_UNDERFLOW,
+                                "Not enough values for ADD",
+                                "bytecode_vm.lyra", pc,
+                                "Stack depth: " + tostring(length(stack)))
+                break
+            }
+        }
+        
+        // Move to next instruction
+        pc = pc + 1
+        iterations = iterations + 1
+    }
+    
+    // Print summary
+    print("")
+    print("================================================================================")
+    print("EXECUTION SUMMARY")
+    print("================================================================================")
+    print("Total iterations: " + tostring(iterations))
+    print("Final PC: " + tostring(pc))
+    print("Halted: " + tostring(halted))
+    print("Errors occurred: " + tostring(error_total_count > 0))
+    print("")
+    
+    // Print error summary if any errors
+    vmPrintErrorSummaryOnExit()
+    
+    return iterations
+}
+
+// ============================================================================
+// END OF VM ERROR INTEGRATION
+// ============================================================================

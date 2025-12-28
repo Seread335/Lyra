@@ -1,13 +1,12 @@
-// Example 2: Fibonacci
+// Example 2: Fibonacci with recursion
 proc fibonacci(n: i32) -> i32 {
     if n <= 1 {
-        n
+        return n;
     } else {
-        fibonacci(n - 1) + fibonacci(n - 2)
+        return fibonacci(n - 1) + fibonacci(n - 2);
     }
 }
 
-proc main() {
-    var fib_10: i32 = fibonacci(10)
-    io.println(fib_10)
-}
+var fib_10: i32 = fibonacci(10);
+print(fib_10);
+

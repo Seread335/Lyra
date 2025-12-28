@@ -1,0 +1,10 @@
+// Sum of numbers
+var sum: i32 = 0;
+var n: i32 = 1;
+
+while n <= 100 {
+    sum = sum + n;
+    n = n + 1;
+}
+
+print(sum);

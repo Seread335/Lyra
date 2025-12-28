@@ -1,0 +1,18 @@
+#!/bin/bash
+# Lyra Interpreter - Easy launcher
+
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+INTERPRETER="$SCRIPT_DIR/lyra_interpreter.py"
+
+if [ ! -f "$INTERPRETER" ]; then
+    echo "Error: lyra_interpreter.py not found"
+    exit 1
+fi
+
+if [ $# -eq 0 ]; then
+    # Interactive mode
+    python3 "$INTERPRETER"
+else
+    # Run file
+    python3 "$INTERPRETER" "$1"
+fi

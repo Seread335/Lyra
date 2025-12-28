@@ -1,0 +1,19 @@
+// Simple arithmetic
+var x: i32 = 10;
+var y: i32 = 20;
+
+print(x);
+print(y);
+print(x + y);
+
+// Loop
+var i: i32 = 0;
+while i < 5 {
+    print(i);
+    i = i + 1;
+}
+
+// Conditional
+if x < y {
+    print("x is less than y");
+}

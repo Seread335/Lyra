@@ -1,0 +1,539 @@
+// ============================================================================
+// LYRA VM ULTRA-OPTIMIZED - BYTECODE ENGINE (Phase 1)
+// ============================================================================
+// Ultra-fast stack-based VM with pre-allocation, register operations,
+// consolidated bounds checking, and zero performance regression on security
+
+// ============================================================================
+// ERROR CODES
+// ============================================================================
+
+var ERR_RUNTIME_STACK_OVERFLOW: i32 = 101
+var ERR_RUNTIME_STACK_UNDERFLOW: i32 = 102
+var ERR_RUNTIME_REGISTER_INVALID: i32 = 103
+var ERR_RUNTIME_DIVIDE_BY_ZERO: i32 = 104
+var ERR_BOUNDS_VARIABLE_INDEX: i32 = 105
+var ERR_SECURITY_TAMPER_DETECTED: i32 = 201
+
+// ============================================================================
+// VM STATE - ULTRA OPTIMIZED FOR SPEED
+// ============================================================================
+
+// Pre-allocated stack (CRITICAL OPTIMIZATION: O(n) -> O(1))
+var vm_stack_ultra: [str] = []      // Pre-allocated to max depth
+var vm_sp: i32 = 0                  // Stack pointer
+
+// Register file (32 fast registers for arithmetic)
+var vm_registers: [str] = []        // Register array [r0..r31]
+var vm_reg_count: i32 = 32          // Number of registers
+
+// Execution state
+var vm_pc: i32 = 0                  // Program counter
+var vm_halted: bool = false         // Execution state
+var vm_return_value: str = ""        // Last return value
+
+// Local variables (still array-based, but with fast path)
+var vm_local_vars: [str] = []
+var vm_call_stack: [i32] = []
+
+// Configuration (same limits, optimized implementation)
+var vm_max_stack_depth: i32 = 10000
+var vm_max_locals: i32 = 1000
+var vm_max_registers: i32 = 32
+
+// Error tracking
+var vm_last_error: i32 = 0
+var vm_error_count: i32 = 0
+
+// Performance counters (optional, can be compiled out)
+var vm_perf_pushes: i64 = 0  // Track all push operations (use i64 to prevent overflow in large workloads)
+var vm_perf_pops: i64 = 0    // Track all pop operations (use i64 to prevent overflow)
+var vm_perf_stack_depth: i32 = 0  // Peak stack depth (i32 is fine, max 10000)
+
+// ============================================================================
+// INITIALIZATION - CRITICAL FOR PERFORMANCE
+// ============================================================================
+
+proc initVMUltra() {
+    // PRE-ALLOCATE STACK TO MAXIMUM (CRITICAL OPTIMIZATION)
+    // This eliminates array reallocation overhead on push
+    var stack_init_idx = 0
+    while stack_init_idx < vm_max_stack_depth {
+        insert(vm_stack_ultra, "")
+        stack_init_idx = stack_init_idx + 1
+    }
+    
+    // Initialize registers
+    var reg_idx = 0
+    while reg_idx < vm_max_registers {
+        insert(vm_registers, "0")
+        reg_idx = reg_idx + 1
+    }
+    
+    // Initialize local variables
+    vm_local_vars = []
+    
+    // Initialize call stack
+    vm_call_stack = []
+    
+    // Reset execution state
+    vm_sp = 0
+    vm_pc = 0
+    vm_halted = false
+    vm_return_value = ""
+    vm_last_error = 0
+    vm_error_count = 0
+    
+    // Reset performance counters
+    vm_perf_pushes = 0
+    vm_perf_pops = 0
+    vm_perf_stack_depth = 0
+    
+    // FIX: Mark as initialized
+    vm_ultra_initialized = true
+    
+    print("═══════════════════════════════════════════════════════════")
+    print("  LYRA VM ULTRA - INITIALIZED")
+    print("═══════════════════════════════════════════════════════════")
+    print("  Stack:        " + tostring(vm_max_stack_depth) + " entries (pre-allocated)")
+    print("  Registers:    " + tostring(vm_max_registers) + " x 64-bit")
+    print("  Locals:       " + tostring(vm_max_locals) + " maximum")
+    print("═══════════════════════════════════════════════════════════")
+}
+
+// ============================================================================
+// ULTRA-FAST STACK OPERATIONS (O(1) guaranteed)
+// ============================================================================
+
+// PUSH - O(1) single bounds check
+proc vmPushUltra(value: str) {
+    // SINGLE CONSOLIDATED BOUNDS CHECK (not split across conditions)
+    if vm_sp >= vm_max_stack_depth {
+        setErrorQuick(ERR_RUNTIME_STACK_OVERFLOW,
+                     "Stack overflow at depth " + tostring(vm_sp))
+        vm_halted = true
+        return
+    }
+    
+    // DIRECT ARRAY ASSIGNMENT - no insert() overhead
+    vm_stack_ultra[vm_sp] = value
+    vm_sp = vm_sp + 1
+    
+    // Track max depth (cheap int comparison)
+    if vm_sp > vm_perf_stack_depth {
+        vm_perf_stack_depth = vm_sp
+    }
+    
+    vm_perf_pushes = vm_perf_pushes + 1
+}
+
+// POP - O(1) single bounds check
+proc vmPopUltra() -> str {
+    // SINGLE BOUNDS CHECK
+    if vm_sp <= 0 {
+        setErrorQuick(ERR_RUNTIME_STACK_UNDERFLOW,
+                     "Stack underflow: attempted pop on empty stack")
+        vm_halted = true
+        return "0"
+    }
+    
+    vm_sp = vm_sp - 1
+    
+    // BOUNDS CHECK IS IMPLICIT: vm_sp is always in [0, vm_max_stack_depth)
+    // because we only decrement if sp > 0
+    var value = vm_stack_ultra[vm_sp]
+    
+    // SECURITY FIX: Clear stack slot after pop to prevent information leakage
+    vm_stack_ultra[vm_sp] = ""
+    
+    vm_perf_pops = vm_perf_pops + 1
+    
+    return value
+}
+
+// PEEK - O(1) safe read
+proc vmPeekUltra() -> str {
+    if vm_sp <= 0 {
+        return "0"
+    }
+    
+    return vm_stack_ultra[vm_sp - 1]
+}
+
+// PEEK_N - Read N positions from top (O(1))
+proc vmPeekN(depth: i32) -> str {
+    var idx = vm_sp - 1 - depth
+    
+    if idx < 0 || idx >= vm_max_stack_depth {
+        return "0"
+    }
+    
+    return vm_stack_ultra[idx]
+}
+
+// DUPLICATE TOP OF STACK
+proc vmDup() {
+    if vm_sp <= 0 {
+        setErrorQuick(ERR_RUNTIME_STACK_UNDERFLOW, "Cannot dup empty stack")
+        return
+    }
+    
+    var top = vm_stack_ultra[vm_sp - 1]
+    vmPushUltra(top)
+}
+
+// SWAP TOP TWO
+proc vmSwap() {
+    if vm_sp < 2 {
+        setErrorQuick(ERR_RUNTIME_STACK_UNDERFLOW, "Cannot swap: insufficient stack")
+        return
+    }
+    
+    var a = vm_stack_ultra[vm_sp - 2]
+    var b = vm_stack_ultra[vm_sp - 1]
+    
+    vm_stack_ultra[vm_sp - 2] = b
+    vm_stack_ultra[vm_sp - 1] = a
+}
+
+// ============================================================================
+// REGISTER OPERATIONS - ULTRA-FAST ARITHMETIC PATH
+// ============================================================================
+
+// REG LOAD - O(1)
+proc regLoadImmediate(reg: i32, value: str) {
+    if reg < 0 || reg >= vm_max_registers {
+        setErrorQuick(ERR_RUNTIME_REGISTER_INVALID, 
+                     "Invalid register: " + tostring(reg))
+        return
+    }
+    
+    vm_registers[reg] = value
+}
+
+// REG STORE
+proc regStore(reg: i32) -> str {
+    if reg < 0 || reg >= vm_max_registers {
+        setErrorQuick(ERR_RUNTIME_REGISTER_INVALID,
+                     "Invalid register: " + tostring(reg))
+        return "0"
+    }
+    
+    return vm_registers[reg]
+}
+
+// REG ADD - Fast arithmetic (eliminates stack traffic)
+proc regAddUltra(dst: i32, src1: i32, src2: i32) {
+    if dst < 0 || dst >= vm_max_registers ||
+       src1 < 0 || src1 >= vm_max_registers ||
+       src2 < 0 || src2 >= vm_max_registers {
+        setErrorQuick(ERR_RUNTIME_REGISTER_INVALID, "Invalid register in ADD")
+        return
+    }
+    
+    var val1 = toint(vm_registers[src1])
+    var val2 = toint(vm_registers[src2])
+    var result = val1 + val2
+    
+    vm_registers[dst] = tostring(result)
+}
+
+// REG SUB
+proc regSubUltra(dst: i32, src1: i32, src2: i32) {
+    if dst < 0 || dst >= vm_max_registers ||
+       src1 < 0 || src1 >= vm_max_registers ||
+       src2 < 0 || src2 >= vm_max_registers {
+        setErrorQuick(ERR_RUNTIME_REGISTER_INVALID, "Invalid register in SUB")
+        return
+    }
+    
+    var val1 = toint(vm_registers[src1])
+    var val2 = toint(vm_registers[src2])
+    var result = val1 - val2
+    
+    vm_registers[dst] = tostring(result)
+}
+
+// REG MUL
+proc regMulUltra(dst: i32, src1: i32, src2: i32) {
+    if dst < 0 || dst >= vm_max_registers ||
+       src1 < 0 || src1 >= vm_max_registers ||
+       src2 < 0 || src2 >= vm_max_registers {
+        setErrorQuick(ERR_RUNTIME_REGISTER_INVALID, "Invalid register in MUL")
+        return
+    }
+    
+    var val1 = toint(vm_registers[src1])
+    var val2 = toint(vm_registers[src2])
+    var result = val1 * val2
+    
+    vm_registers[dst] = tostring(result)
+}
+
+// REG DIV (with divide-by-zero protection)
+proc regDivUltra(dst: i32, src1: i32, src2: i32) {
+    if dst < 0 || dst >= vm_max_registers ||
+       src1 < 0 || src1 >= vm_max_registers ||
+       src2 < 0 || src2 >= vm_max_registers {
+        setErrorQuick(ERR_RUNTIME_REGISTER_INVALID, "Invalid register in DIV")
+        return
+    }
+    
+    var val1 = toint(vm_registers[src1])
+    var val2 = toint(vm_registers[src2])
+    
+    if val2 == 0 {
+        setErrorQuick(ERR_RUNTIME_DIVIDE_BY_ZERO, "Division by zero in register operation")
+        vm_registers[dst] = "0"
+        return
+    }
+    
+    var result = val1 / val2
+    vm_registers[dst] = tostring(result)
+}
+
+// REG COMPARE - For conditional jumps (returns -1, 0, 1)
+proc regCmpUltra(src1: i32, src2: i32) -> i32 {
+    if src1 < 0 || src1 >= vm_max_registers ||
+       src2 < 0 || src2 >= vm_max_registers {
+        setErrorQuick(ERR_RUNTIME_REGISTER_INVALID, "Invalid register in CMP")
+        return 0
+    }
+    
+    var val1 = toint(vm_registers[src1])
+    var val2 = toint(vm_registers[src2])
+    
+    // FIX: Use proper braced blocks for safety and readability
+    if val1 < val2 {
+        return -1
+    }
+    if val1 > val2 {
+        return 1
+    }
+    return 0
+}
+
+// ============================================================================
+// LOCAL VARIABLE MANAGEMENT - OPTIMIZED
+// ============================================================================
+
+// GET LOCAL - with bounds checking
+proc vmGetLocalUltra(idx: i32) -> str {
+    if idx < 0 || idx >= vm_max_locals {
+        setErrorQuick(ERR_BOUNDS_VARIABLE_INDEX,
+                     "Local variable index out of bounds: " + tostring(idx))
+        return "0"
+    }
+    
+    // Extend locals array if needed
+    while length(vm_local_vars) <= idx {
+        if length(vm_local_vars) >= vm_max_locals {
+            setErrorQuick(ERR_BOUNDS_VARIABLE_INDEX, "Local variables limit exceeded")
+            return "0"
+        }
+        insert(vm_local_vars, "0")
+    }
+    
+    return vm_local_vars[idx]
+}
+
+// SET LOCAL - with bounds checking and extension
+proc vmSetLocalUltra(idx: i32, value: str) {
+    if idx < 0 || idx >= vm_max_locals {
+        setErrorQuick(ERR_BOUNDS_VARIABLE_INDEX,
+                     "Local variable index out of bounds: " + tostring(idx))
+        return
+    }
+    
+    // Extend locals array if needed
+    while length(vm_local_vars) <= idx {
+        if length(vm_local_vars) >= vm_max_locals {
+            setErrorQuick(ERR_BOUNDS_VARIABLE_INDEX, "Cannot extend locals beyond limit")
+            return
+        }
+        insert(vm_local_vars, "0")
+    }
+    
+    vm_local_vars[idx] = value
+}
+
+// ============================================================================
+// EXECUTION STATE
+// ============================================================================
+
+proc vmIsHalted() -> bool {
+    return vm_halted
+}
+
+proc vmGetReturnValue() -> str {
+    return vm_return_value
+}
+
+proc vmSetReturnValue(value: str) {
+    vm_return_value = value
+}
+
+proc vmHalt() {
+    vm_halted = true
+}
+
+// ============================================================================
+// STACK INTROSPECTION
+// ============================================================================
+
+proc vmGetStackDepth() -> i32 {
+    return vm_sp
+}
+
+proc vmGetMaxStackDepth() -> i32 {
+    return vm_perf_stack_depth
+}
+
+proc vmResetPerfCounters() {
+    vm_perf_pushes = 0
+    vm_perf_pops = 0
+    vm_perf_stack_depth = 0
+}
+
+proc vmGetPerfStats() -> str {
+    var stats = ""
+    stats = stats + "Pushes: " + tostring(vm_perf_pushes) + "\n"
+    stats = stats + "Pops: " + tostring(vm_perf_pops) + "\n"
+    stats = stats + "Max Depth: " + tostring(vm_perf_stack_depth) + "\n"
+    stats = stats + "Current Depth: " + tostring(vm_sp) + "\n"
+    return stats
+}
+
+// ============================================================================
+// STACK CLEARING (for context switch or cleanup)
+// ============================================================================
+// ============================================================================
+// ERROR HANDLING
+// ============================================================================
+
+proc setErrorQuick(code: i32, message: str) {
+    // Quick error handler (non-allocating for performance)
+    vm_last_error = code
+    vm_error_count = vm_error_count + 1
+    
+    // Only log first few errors to avoid spam
+    if vm_error_count <= 10 {
+        print("⚠️  VM Error [" + tostring(code) + "]: " + message)
+    }
+}
+
+// ============================================================================
+// STACK OPERATIONS
+// ============================================================================
+
+proc vmClearStack() {
+    var i = 0
+    while i < vm_sp {
+        if i < length(vm_stack_ultra) {
+            vm_stack_ultra[i] = ""  // Clear for security
+        }
+        i = i + 1
+    }
+    vm_sp = 0
+}
+
+proc vmClearRegisters() {
+    var i = 0
+    while i < vm_max_registers {
+        if i < length(vm_registers) {
+            vm_registers[i] = "0"
+        }
+        i = i + 1
+    }
+}
+
+// ============================================================================
+// INTEGRITY VERIFICATION (Security without performance loss)
+// ============================================================================
+
+// Fast integrity check (sampling-based)
+var vm_integrity_check_interval: i32 = 100  // Check every N operations
+var vm_operations_since_check: i32 = 0
+
+proc vmCheckIntegritySampling() {
+    vm_operations_since_check = vm_operations_since_check + 1
+    
+    // Only perform check every N operations
+    if vm_operations_since_check < vm_integrity_check_interval {
+        return
+    }
+    
+    vm_operations_since_check = 0
+    
+    // Quick integrity checks:
+    // 1. Stack pointer in valid range [0, vm_max_stack_depth)
+    if vm_sp < 0 || vm_sp >= vm_max_stack_depth {
+        setErrorQuick(ERR_SECURITY_TAMPER_DETECTED, "Stack pointer corrupted")
+        vm_halted = true
+        return
+    }
+    
+    // 2. No NaN in numeric operations (basic check)
+    // This would be extended with cryptographic verification
+}
+
+// ============================================================================
+// ULTRA VM STATUS AND DEBUGGING
+// ============================================================================
+
+proc vmDumpStackTrace() {
+    print("╔═ STACK TRACE ═════════════════════╗")
+    print("║ Depth: " + tostring(vm_sp) + "/" + tostring(vm_max_stack_depth))
+    
+    var idx = vm_sp - 1
+    var count = 0
+    while idx >= 0 && count < 10 {
+        var addr = tostring(idx)
+        var val = vm_stack_ultra[idx]
+        print("║ [" + addr + "] = \"" + val + "\"")
+        idx = idx - 1
+        count = count + 1
+    }
+    
+    print("╚════════════════════════════════════╝")
+}
+
+proc vmDumpRegisters() {
+    print("╔═ REGISTERS ════════════════════════╗")
+    var i = 0
+    while i < vm_max_registers && i < 16 {
+        var reg_name = "R" + tostring(i)
+        if i < 10 {
+            reg_name = "R0" + tostring(i)
+        }
+        
+        var val = vm_registers[i]
+        print("║ " + reg_name + " = " + val)
+        i = i + 1
+    }
+    print("╚════════════════════════════════════╝")
+}
+
+proc vmPrintStats() {
+    print("╔═ PERFORMANCE STATS ════════════════╗")
+    print("║ Stack Pushes:      " + tostring(vm_perf_pushes))
+    print("║ Stack Pops:        " + tostring(vm_perf_pops))
+    print("║ Max Stack Depth:   " + tostring(vm_perf_stack_depth))
+    print("║ Current Depth:     " + tostring(vm_sp))
+    print("║ Error Count:       " + tostring(vm_error_count))
+    print("╚════════════════════════════════════╝")
+}
+
+// ============================================================================
+// INITIALIZATION MARKER FOR MODULE LOADING
+// ============================================================================
+
+var vm_ultra_initialized: bool = false
+
+proc markVMUltraInitialized() {
+    vm_ultra_initialized = true
+}
+
+proc isVMUltraInitialized() -> bool {
+    return vm_ultra_initialized
+}

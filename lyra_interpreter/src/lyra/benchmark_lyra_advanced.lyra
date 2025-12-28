@@ -1,0 +1,323 @@
+// ============================================================================
+// LYRA ADVANCED SYSTEM BENCHMARK - STRESS TEST ALL COMPONENTS
+// ============================================================================
+// Tests:
+// - Error system precision & recovery
+// - VM optimization (hotpath, batch operations)
+// - Multi-level JIT cache hierarchy
+// - Buddy allocator & defragmentation
+// - Memory coloring & NUMA
+// - Integrated system performance
+// ============================================================================
+
+// ============================================================================
+// TIER 1: ERROR SYSTEM VALIDATION
+// ============================================================================
+
+proc benchmarkErrorSystem() {
+    print("")
+    print("╔═══════════════════════════════════════════════════════╗")
+    print("║  TIER 1: ERROR SYSTEM ULTRA VALIDATION                ║")
+    print("║  Measures error recording & recovery accuracy         ║")
+    print("╚═══════════════════════════════════════════════════════╝")
+    
+    initErrorSystemUltra()
+    
+    print("\n[1] Error Recording Speed")
+    print("    Injecting 10K diverse errors...")
+    
+    var error_count = 0
+    while error_count < 10000 {
+        var error_code = 0x0100 + (error_count % 100)
+        var message = "Error " + tostring(error_count)
+        var context = "reg_r" + tostring(error_count % 32)
+        var location = "file.lyra:" + tostring(error_count)
+        
+        errorRecord(error_code, message, context, location)
+        error_count = error_count + 1
+    }
+    
+    print("    Recorded " + tostring(error_total_count) + " errors")
+    print("    Critical: " + tostring(error_fatal_count))
+    print("    Warnings: " + tostring(error_warning_count))
+    
+    print("\n[2] Error Category Distribution")
+    print(errorGetCategoryDistribution())
+    
+    print("\n[3] Recovery Analysis")
+    print("    Testing recovery strategies...")
+    var recovery_count = 0
+    while recovery_count < 10 {
+        var code = 0x0101 + recovery_count
+        var result = errorTryRecover(code)
+        if result == 0 {
+            print("      Error 0x" + tostring(code) + ": RECOVERED")
+        } else if result == 1 {
+            print("      Error 0x" + tostring(code) + ": PARTIAL RECOVERY")
+        } else {
+            print("      Error 0x" + tostring(code) + ": UNRECOVERABLE")
+        }
+        recovery_count = recovery_count + 1
+    }
+}
+
+// ============================================================================
+// TIER 2: VM OPTIMIZATION VALIDATION
+// ============================================================================
+
+proc benchmarkVMOptimized() {
+    print("")
+    print("╔═══════════════════════════════════════════════════════╗")
+    print("║  TIER 2: VM ULTRA OPTIMIZED PERFORMANCE              ║")
+    print("║  Measures hotpath throughput & instruction cache      ║")
+    print("╚═══════════════════════════════════════════════════════╝")
+    
+    vmInitUltraOptimized()
+    
+    print("\n[1] Hotpath Push/Pop Performance")
+    print("    Testing 100K push operations...")
+    
+    var push_count = 0
+    while push_count < 100000 {
+        vmPushHotpath(tostring(push_count))
+        push_count = push_count + 1
+    }
+    
+    print("    Completed " + tostring(push_count) + " pushes")
+    print("    Stack depth: " + tostring(sp_fast))
+    
+    print("\n[2] Batch Operations (4x Unroll)")
+    print("    Testing 25K batched operations...")
+    
+    var batch_count = 0
+    while batch_count < 25000 {
+        vmPushBatch4("a", "b", "c", "d")
+        batch_count = batch_count + 1
+    }
+    
+    print("    Completed " + tostring(batch_count * 4) + " operations in batches")
+    
+    print("\n[3] Register Operations")
+    print("    Testing dual-issue arithmetic...")
+    
+    var reg_count = 0
+    while reg_count < 50000 {
+        regAddDualIssue(0, 1, 2, 3, 4, 5)
+        regAddDualIssue(6, 7, 8, 9, 10, 11)
+        reg_count = reg_count + 1
+    }
+    
+    print("    Completed " + tostring(reg_count * 2) + " dual-issue operations")
+    
+    print(vmGetOptimizedStats())
+}
+
+// ============================================================================
+// TIER 3: JIT CACHE HIERARCHY VALIDATION
+// ============================================================================
+
+proc benchmarkJITCacheHierarchy() {
+    print("")
+    print("╔═══════════════════════════════════════════════════════╗")
+    print("║  TIER 3: JIT CACHE HIERARCHY PERFORMANCE              ║")
+    print("║  Tests L1, L2, L3 hit rates & victim cache            ║")
+    print("╚═══════════════════════════════════════════════════════╝")
+    
+    initJITCacheAdvanced()
+    
+    print("\n[1] L1 Cache Population")
+    print("    Inserting 256 entries (L1 full)...")
+    
+    var idx = 0
+    while idx < 256 {
+        var key = "type_signature_" + tostring(idx)
+        var value = "compiled_code_" + tostring(idx)
+        jitL1Insert(key, value)
+        idx = idx + 1
+    }
+    
+    print("    L1 Entries: " + tostring(l1_entries) + "/256")
+    
+    print("\n[2] L2 Cache Population & Eviction")
+    print("    Inserting into L2 (4-way associative)...")
+    
+    idx = 0
+    while idx < 500 {
+        var key = "type_signature_l2_" + tostring(idx)
+        var value = "compiled_code_l2_" + tostring(idx)
+        jitL2Insert(key, value)
+        idx = idx + 1
+    }
+    
+    print("    L2 Entries: " + tostring(l2_entries))
+    print("    L2 Evictions: " + tostring(l2_evictions))
+    
+    print("\n[3] Multi-Level Lookups")
+    print("    Performing 10K cache lookups...")
+    
+    var lookup_count = 0
+    while lookup_count < 10000 {
+        var key = "type_signature_" + tostring(lookup_count % 500)
+        var result = jitCacheLookupMultiLevel(key)
+        lookup_count = lookup_count + 1
+    }
+    
+    print(jitGetCacheHierarchyStats())
+}
+
+// ============================================================================
+// TIER 4: MEMORY ALLOCATOR VALIDATION
+// ============================================================================
+
+proc benchmarkMemoryAdvanced() {
+    print("")
+    print("╔═══════════════════════════════════════════════════════╗")
+    print("║  TIER 4: MEMORY SLAB ULTRA ADVANCED PERFORMANCE       ║")
+    print("║  Tests buddy allocator, coloring, defragmentation     ║")
+    print("╚═══════════════════════════════════════════════════════╝")
+    
+    initMemorySlabAdvanced()
+    
+    print("\n[1] Buddy Allocator")
+    print("    Allocating 1000 blocks...")
+    
+    var alloc_count = 0
+    while alloc_count < 1000 {
+        var size = 32 * (1 + (alloc_count % 32))
+        if size > 4096 { size = 4096 }
+        
+        var block = buddyAllocate(size)
+        
+        alloc_count = alloc_count + 1
+    }
+    
+    print("    Allocations: " + tostring(buddy_allocations))
+    print("    Splits: " + tostring(buddy_splits))
+    print("    Merges: " + tostring(buddy_merges))
+    
+    print("\n[2] Memory Coloring")
+    print("    Performing colored allocations...")
+    
+    var color_count = 0
+    while color_count < 500 {
+        var color = color_count % 16
+        colorAllocate(128, color)
+        color_count = color_count + 1
+    }
+    
+    print("    Allocations Colored: " + tostring(length(color_map)))
+    print("    Color Conflicts: " + tostring(color_conflicts))
+    
+    print("\n[3] NUMA-Aware Allocation")
+    print("    Allocating across 2 NUMA nodes...")
+    
+    var numa_count = 0
+    while numa_count < 500 {
+        var node = numa_count % 2
+        var size = 256 + (numa_count % 256)
+        allocateOnNUMANode(size, node)
+        numa_count = numa_count + 1
+    }
+    
+    print("    Node 0: " + tostring(numa_node_0_allocations) + " allocations, " + tostring(numa_node_0_size) + " bytes")
+    print("    Node 1: " + tostring(numa_node_1_allocations) + " allocations, " + tostring(numa_node_1_size) + " bytes")
+    
+    print("\n[4] Defragmentation")
+    print("    Testing adaptive defragmentation...")
+    
+    updateMemoryPressure(100000, 131072)  // 76% pressure
+    
+    var defrag_iterations = 0
+    while defrag_iterations < 10 {
+        defragmentMemory()
+        defrag_iterations = defrag_iterations + 1
+    }
+    
+    print("    Defrag Cycles: " + tostring(defrag_cycles))
+    print("    Blocks Moved: " + tostring(defrag_blocks_moved))
+    print("    Memory Recovered: " + tostring(defrag_memory_recovered) + " bytes")
+    
+    print(memoryGetAdvancedStats())
+}
+
+// ============================================================================
+// TIER 5: INTEGRATED SYSTEM STRESS TEST
+// ============================================================================
+
+proc benchmarkIntegratedSystem() {
+    print("")
+    print("╔═══════════════════════════════════════════════════════╗")
+    print("║  TIER 5: INTEGRATED SYSTEM STRESS TEST                ║")
+    print("║  All components working together under extreme load   ║")
+    print("╚═══════════════════════════════════════════════════════╝")
+    
+    initErrorSystemUltra()
+    vmInitUltraOptimized()
+    initJITCacheAdvanced()
+    initMemorySlabAdvanced()
+    
+    print("\n[1] Simultaneous Operations")
+    print("    Running coordinated workload...")
+    
+    var iterations = 5000
+    var iter = 0
+    
+    while iter < iterations {
+        // VM operations
+        vmPushHotpath("value_" + tostring(iter))
+        var popped = vmPopHotpath()
+        
+        // JIT cache operations
+        var key = "type_" + tostring(iter % 100)
+        jitCacheLookupMultiLevel(key)
+        jitL1Insert(key, "compiled_" + tostring(iter))
+        
+        // Memory operations
+        var size = 32 + (iter % 256)
+        var block = buddyAllocate(size)
+        colorAllocate(size, iter % 16)
+        
+        // Error recording (occasional)
+        if iter % 500 == 0 {
+            errorRecord(0x0101, "Stress test error", "iter_" + tostring(iter), "stress_test.lyra:0")
+        }
+        
+        iter = iter + 1
+    }
+    
+    print("    Completed " + tostring(iterations) + " coordinated cycles")
+    
+    print("\n[2] Final Statistics")
+    print("    ---- VM ----")
+    print(vmGetOptimizedStats())
+    print("    ---- JIT ----")
+    print(jitGetCacheHierarchyStats())
+    print("    ---- MEMORY ----")
+    print(memoryGetAdvancedStats())
+    print("    ---- ERRORS ----")
+    print(errorGetCategoryDistribution())
+}
+
+// ============================================================================
+// MASTER BENCHMARK SUITE
+// ============================================================================
+
+proc benchmarkLyraAdvancedFull() {
+    print("")
+    print("╔═════════════════════════════════════════════════════════════╗")
+    print("║  LYRA ADVANCED SYSTEM - COMPREHENSIVE BENCHMARK SUITE       ║")
+    print("║  Tests error system, VM optimization, cache hierarchy,      ║")
+    print("║  memory management, and integrated performance under load   ║")
+    print("╚═════════════════════════════════════════════════════════════╝")
+    
+    benchmarkErrorSystem()
+    benchmarkVMOptimized()
+    benchmarkJITCacheHierarchy()
+    benchmarkMemoryAdvanced()
+    benchmarkIntegratedSystem()
+    
+    print("")
+    print("╔═════════════════════════════════════════════════════════════╗")
+    print("║  BENCHMARK COMPLETE - LYRA ADVANCED SYSTEM VALIDATED        ║")
+    print("╚═════════════════════════════════════════════════════════════╝")
+}

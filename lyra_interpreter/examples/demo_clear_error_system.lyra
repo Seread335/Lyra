@@ -1,0 +1,150 @@
+// DEMO: ERROR HANDLING IN LYRA
+// Shows basic error handling patterns with functions
+
+proc safe_divide(numerator: i32, denominator: i32) -> i32 {
+    if denominator == 0 {
+        print("ERROR: Cannot divide by zero!");
+        return 0;
+    }
+    return numerator / denominator;
+}
+
+proc validate_positive(value: i32) -> i32 {
+    if value < 0 {
+        print("ERROR: Value must be positive!");
+        return -1;
+    }
+    return value;
+}
+
+proc safe_average(sum: i32, count: i32) -> i32 {
+    if count == 0 {
+        print("ERROR: Cannot calculate average with zero items!");
+        return 0;
+    }
+    if sum < 0 {
+        print("ERROR: Sum cannot be negative!");
+        return 0;
+    }
+    return sum / count;
+}
+
+proc bounded_value(value: i32, min_val: i32, max_val: i32) -> i32 {
+    if value < min_val {
+        print("ERROR: Value below minimum!");
+        return min_val;
+    }
+    if value > max_val {
+        print("ERROR: Value above maximum!");
+        return max_val;
+    }
+    return value;
+}
+
+// Main tests
+print("================================================================================");
+print("           LYRA ERROR HANDLING DEMO");
+print("================================================================================");
+print("");
+
+print("[TEST 1] Safe Division Operations");
+print("Test 1.1: 100 / 5 (valid)");
+var div1: i32 = safe_divide(100, 5);
+print("Result:");
+print(div1);
+print("");
+
+print("Test 1.2: 50 / 0 (zero division error)");
+var div2: i32 = safe_divide(50, 0);
+print("Result (should be 0):");
+print(div2);
+print("");
+
+print("[TEST 2] Input Validation");
+print("Test 2.1: validate_positive(42) (valid)");
+var val1: i32 = validate_positive(42);
+print("Result:");
+print(val1);
+print("");
+
+print("Test 2.2: validate_positive(-5) (error)");
+var val2: i32 = validate_positive(-5);
+print("Result (should be -1):");
+print(val2);
+print("");
+
+print("[TEST 3] Average Calculation");
+print("Test 3.1: average(60, 3) = 20 (valid)");
+var avg1: i32 = safe_average(60, 3);
+print("Result:");
+print(avg1);
+print("");
+
+print("Test 3.2: average(100, 0) (zero count error)");
+var avg2: i32 = safe_average(100, 0);
+print("Result (should be 0):");
+print(avg2);
+print("");
+
+print("Test 3.3: average(-50, 2) (negative sum error)");
+var avg3: i32 = safe_average(-50, 2);
+print("Result (should be 0):");
+print(avg3);
+print("");
+
+print("[TEST 4] Value Bounds Checking");
+print("Test 4.1: bounded_value(50, 0, 100) (valid)");
+var bounded1: i32 = bounded_value(50, 0, 100);
+print("Result:");
+print(bounded1);
+print("");
+
+print("Test 4.2: bounded_value(-10, 0, 100) (too low)");
+var bounded2: i32 = bounded_value(-10, 0, 100);
+print("Result (clamped to 0):");
+print(bounded2);
+print("");
+
+print("Test 4.3: bounded_value(150, 0, 100) (too high)");
+var bounded3: i32 = bounded_value(150, 0, 100);
+print("Result (clamped to 100):");
+print(bounded3);
+print("");
+
+print("[TEST 5] Combined Error Handling");
+var x: i32 = 20;
+var y: i32 = 4;
+var result: i32 = safe_divide(x, y);
+var checked: i32 = validate_positive(result);
+print("Test 5.1: Divide 20/4, then validate result");
+print("Final result:");
+print(checked);
+print("");
+
+print("================================================================================");
+print("             ALL TESTS COMPLETED SUCCESSFULLY");
+print("================================================================================");
+
+    runDemo1_Arithmetic()
+    runDemo2_Arrays()
+    runDemo3_Validation()
+    runDemo4_Memory()
+    runDemo5_Recovery()
+    
+    // Print final summary
+    print("")
+    print("================================================================================")
+    print("FINAL ERROR SUMMARY")
+    print("================================================================================")
+    print("")
+    errorPrintStatistics()
+    print("")
+    
+    // Print error history
+    print("Full Error History:")
+    errorPrintHistory()
+}
+
+// ============================================================================
+// END OF DEMO
+// ============================================================================

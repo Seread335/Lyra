@@ -1,0 +1,623 @@
+// ============================================================================
+// LYRA NNLT v2.3.22.2 - FORMAL LANGUAGE GRAMMAR (BNF/EBNF)
+// ============================================================================
+// Complete formal specification of Lyra syntax and semantics
+// Resolves all ambiguities in parsing and evaluation
+
+// ============================================================================
+// PART 1: LEXICAL GRAMMAR (Token Definitions)
+// ============================================================================
+
+/*
+LEXICAL GRAMMAR:
+
+WHITESPACE ::= ( ' ' | '\t' | '\n' | '\r' )+
+
+COMMENT ::= '//' <any-char-except-newline>* '\n'
+
+IDENTIFIER ::= [a-zA-Z_] [a-zA-Z0-9_]*
+
+NUMBER ::= <integer> | <float>
+  <integer> ::= '-'? [0-9]+
+  <float> ::= '-'? [0-9]+ '.' [0-9]+
+
+STRING ::= '"' <string-content> '"'
+  <string-content> ::= ( <any-char-except-quote> | '\\' <any-char> )*
+
+KEYWORD ::= 'var' | 'proc' | 'if' | 'else' | 'while' | 'for' | 'break' | 'continue'
+          | 'return' | 'true' | 'false' | 'and' | 'or' | 'not' | 'in'
+          | 'import' | 'module' | 'type' | 'interface' | 'match' | 'fn'
+          | 'try' | 'catch' | 'finally' | 'throw' | 'struct' | 'enum'
+
+OPERATOR ::= '+' | '-' | '*' | '/' | '%' | '==' | '!=' | '<' | '>' | '<=' | '>='
+           | '=' | '+=' | '-=' | '*=' | '/=' | '&&' | '||' | '!' | '&' | '|'
+           | '^' | '<<' | '>>' | '++' | '--' | '?' | ':' | '.'
+
+DELIMITER ::= '(' | ')' | '[' | ']' | '{' | '}' | ',' | ';' | '->' | '=>'
+
+TOKEN ::= KEYWORD | IDENTIFIER | NUMBER | STRING | OPERATOR | DELIMITER | COMMENT
+*/
+
+// ============================================================================
+// PART 2: SYNTAX GRAMMAR (Context-Free Grammar)
+// ============================================================================
+
+/*
+PROGRAM ::= STATEMENT*
+
+STATEMENT ::= DECLARATION | EXPRESSION_STMT | BLOCK | IF_STMT | WHILE_STMT
+            | FOR_STMT | RETURN_STMT | BREAK_STMT | CONTINUE_STMT | TRY_STMT
+
+DECLARATION ::= VAR_DECL | PROC_DECL | TYPE_DECL | IMPORT_STMT
+
+VAR_DECL ::= 'var' IDENTIFIER ( ':' TYPE )? ( '=' EXPRESSION )? ';'
+
+PROC_DECL ::= 'proc' IDENTIFIER '(' PARAM_LIST? ')' ( '->' TYPE )? BLOCK
+  PARAM_LIST ::= PARAM ( ',' PARAM )*
+  PARAM ::= IDENTIFIER ':' TYPE
+
+TYPE_DECL ::= 'type' IDENTIFIER '=' TYPE ';'
+
+IMPORT_STMT ::= 'import' STRING ';'
+
+EXPRESSION_STMT ::= EXPRESSION ';'
+
+BLOCK ::= '{' STATEMENT* '}'
+
+IF_STMT ::= 'if' EXPRESSION BLOCK ( 'else' BLOCK )?
+
+WHILE_STMT ::= 'while' EXPRESSION BLOCK
+
+FOR_STMT ::= 'for' IDENTIFIER 'in' EXPRESSION BLOCK
+           | 'for' VAR_DECL ';' EXPRESSION ';' EXPRESSION BLOCK
+
+RETURN_STMT ::= 'return' EXPRESSION? ';'
+
+BREAK_STMT ::= 'break' ';'
+
+CONTINUE_STMT ::= 'continue' ';'
+
+TRY_STMT ::= 'try' BLOCK CATCH_CLAUSE* FINALLY_CLAUSE?
+  CATCH_CLAUSE ::= 'catch' '(' IDENTIFIER ':' TYPE ')' BLOCK
+  FINALLY_CLAUSE ::= 'finally' BLOCK
+
+MATCH_STMT ::= 'match' EXPRESSION '{' MATCH_CASE* '}'
+  MATCH_CASE ::= PATTERN '->' EXPRESSION ';'
+  PATTERN ::= LITERAL | IDENTIFIER | '_' | PATTERN_TUPLE | PATTERN_ENUM
+  PATTERN_TUPLE ::= '(' PATTERN ( ',' PATTERN )* ')'
+  PATTERN_ENUM ::= IDENTIFIER '(' PATTERN_LIST? ')'
+*/
+
+// ============================================================================
+// PART 3: EXPRESSION GRAMMAR (Operator Precedence)
+// ============================================================================
+
+/*
+EXPRESSION HIERARCHY (highest to lowest precedence):
+
+EXPRESSION ::= ASSIGNMENT
+
+ASSIGNMENT ::= TERNARY ( ( '=' | '+=' | '-=' | '*=' | '/=' ) TERNARY )*
+
+TERNARY ::= OR ( '?' EXPRESSION ':' EXPRESSION )?
+
+OR ::= AND ( 'or' AND )*
+
+AND ::= EQUALITY ( 'and' EQUALITY )*
+
+EQUALITY ::= COMPARISON ( ( '==' | '!=' ) COMPARISON )*
+
+COMPARISON ::= BITWISE ( ( '<' | '>' | '<=' | '>=' ) BITWISE )*
+
+BITWISE ::= SHIFT ( ( '&' | '|' | '^' ) SHIFT )*
+
+SHIFT ::= ADDITIVE ( ( '<<' | '>>' ) ADDITIVE )*
+
+ADDITIVE ::= MULTIPLICATIVE ( ( '+' | '-' ) MULTIPLICATIVE )*
+
+MULTIPLICATIVE ::= UNARY ( ( '*' | '/' | '%' ) UNARY )*
+
+UNARY ::= ( '!' | '-' | '++' | '--' | '&' | '*' ) UNARY | POWER
+
+POWER ::= POSTFIX ( '**' POSTFIX )*
+
+POSTFIX ::= PRIMARY ( ( '[' EXPRESSION ']' ) | ( '.' IDENTIFIER ) 
+                                             | ( '(' ARGUMENT_LIST? ')' ) )*
+
+PRIMARY ::= LITERAL | IDENTIFIER | '(' EXPRESSION ')' | LAMBDA | ARRAY_LITERAL
+          | MATCH_EXPR
+
+LAMBDA ::= 'fn' '(' PARAM_LIST? ')' '->' TYPE BLOCK
+         | 'fn' '(' PARAM_LIST? ')' BLOCK
+
+ARRAY_LITERAL ::= '[' ( EXPRESSION ( ',' EXPRESSION )* )? ']'
+
+MATCH_EXPR ::= 'match' EXPRESSION '{' MATCH_CASE* '}'
+
+LITERAL ::= NUMBER | STRING | 'true' | 'false' | 'null'
+
+ARGUMENT_LIST ::= EXPRESSION ( ',' EXPRESSION )*
+*/
+
+// ============================================================================
+// PART 4: TYPE GRAMMAR
+// ============================================================================
+
+/*
+TYPE ::= PRIMITIVE_TYPE | COMPOSITE_TYPE | GENERIC_TYPE | FUNCTION_TYPE
+
+PRIMITIVE_TYPE ::= 'i32' | 'i64' | 'f32' | 'f64' | 'str' | 'bool' | 'void'
+
+COMPOSITE_TYPE ::= '[' TYPE ']'                    // Array type
+                 | IDENTIFIER                       // Struct/enum type
+                 | TYPE '?'                         // Option type
+                 | 'result' '<' TYPE ',' TYPE '>'  // Result type
+
+GENERIC_TYPE ::= IDENTIFIER '<' TYPE_ARGS '>'
+  TYPE_ARGS ::= TYPE ( ',' TYPE )*
+
+FUNCTION_TYPE ::= 'fn' '(' TYPE_LIST? ')' '->' TYPE
+  TYPE_LIST ::= TYPE ( ',' TYPE )*
+*/
+
+// ============================================================================
+// PART 5: SEMANTIC RULES
+// ============================================================================
+
+/*
+SEMANTIC RULES:
+
+1. SCOPE RULES:
+   - Variables declared with 'var' have block scope
+   - Procedures have global scope (hoisting)
+   - Inner scope shadows outer scope
+   - Variables must be declared before use
+
+2. TYPE CHECKING (Static):
+   - All operations must have compatible types
+   - Implicit conversions: i32 -> f64, i64 -> f64
+   - No implicit conversions between incompatible types
+   - Array types are invariant (not covariant/contravariant)
+
+3. EVALUATION ORDER:
+   - Expressions evaluate left-to-right
+   - Operator precedence as defined in expression grammar
+   - Function arguments evaluated left-to-right before call
+   - Assignment is right-associative: a = b = c => a = (b = c)
+
+4. FUNCTION CALLS:
+   - Arguments must match parameter types (after implicit conversion)
+   - Argument count must match parameter count
+   - Return value must match declared return type
+   - Recursive calls allowed
+
+5. CONTROL FLOW:
+   - 'break' exits innermost loop
+   - 'continue' goes to next iteration of innermost loop
+   - 'return' exits current function with value
+   - Unreachable code is a warning, not an error
+
+6. ERROR SEMANTICS:
+   - Try block executes normally
+   - If error occurs, catch block executes (if present)
+   - Finally block ALWAYS executes (even if return in try/catch)
+   - Nested try blocks are allowed
+
+7. PATTERN MATCHING:
+   - Patterns match in order (first match wins)
+   - Underscore '_' matches anything
+   - Binding patterns create variables in match arm scope
+   - Guards (conditions) evaluated before pattern match
+   - Exhaustiveness not required (but recommended)
+
+8. GENERIC TYPES:
+   - Type parameters are nominal (name-based)
+   - Type parameters can have constraints (bounds)
+   - Instantiation happens at compile-time
+   - Generic functions require explicit type specification
+
+9. CLOSURES:
+   - Closures capture variables by value
+   - Explicit capture list required
+   - Closure type is: fn(params) -> return_type
+   - Higher-order functions use closure types
+*/
+
+// ============================================================================
+// PART 6: CANONICAL API SPECIFICATION
+// ============================================================================
+
+/*
+CANONICAL PROCEDURES (One official name per operation):
+
+OUTPUT:
+  print(value: str) -> void
+  println(value: str) -> void
+
+INPUT:
+  input() -> str
+
+ARRAY OPERATIONS:
+  length(array: [T]) -> i32
+  insert(array: [T], value: T) -> void
+  remove(array: [T], index: i32) -> T
+  push(array: [T], value: T) -> void
+  pop(array: [T]) -> T
+  reverse(array: [T]) -> void
+
+STRING OPERATIONS:
+  tostring(value: T) -> str
+  tonumber(value: str) -> i32
+  toreal(value: str) -> f64
+  length(string: str) -> i32
+  substring(string: str, start: i32, end: i32) -> str
+  indexOf(string: str, char: str) -> i32
+  split(string: str, delimiter: str) -> [str]
+  join(array: [str], delimiter: str) -> str
+  toupper(string: str) -> str
+  tolower(string: str) -> str
+  trim(string: str) -> str
+
+TYPE CONVERSION:
+  tostring(value: T) -> str
+  tonumber(str: str) -> i32
+  toreal(str: str) -> f64
+  tobool(str: str) -> bool
+
+OPTION OPERATIONS:
+  some(value: T) -> Option<T>
+  none() -> Option<void>
+  isSome(opt: Option<T>) -> bool
+  isNone(opt: Option<T>) -> bool
+  unwrap(opt: Option<T>) -> T
+  unwrapOr(opt: Option<T>, default: T) -> T
+
+RESULT OPERATIONS:
+  success(value: T) -> Result<T, E>
+  failure(error: E) -> Result<T, E>
+  isOk(res: Result<T, E>) -> bool
+  isErr(res: Result<T, E>) -> bool
+  unwrap(res: Result<T, E>) -> T
+  unwrapErr(res: Result<T, E>) -> E
+
+HIGHER-ORDER FUNCTIONS:
+  map(array: [T], f: fn(T) -> U) -> [U]
+  filter(array: [T], f: fn(T) -> bool) -> [T]
+  fold(array: [T], init: U, f: fn(U, T) -> U) -> U
+  reduce(array: [T], f: fn(T, T) -> T) -> T
+
+ERROR HANDLING:
+  setError(code: i32, message: str) -> void
+  getErrorCode() -> i32
+  getErrorMessage() -> str
+  hasError() -> bool
+  clearError() -> void
+*/
+
+// ============================================================================
+// PART 7: TYPE INFERENCE RULES
+// ============================================================================
+
+/*
+TYPE INFERENCE (Bidirectional):
+
+FORWARD DIRECTION (Expression -> Type):
+  - Literals have fixed types: 42 : i32, 3.14 : f64, "hi" : str, true : bool
+  - Variables have declared types
+  - Function calls return declared return type
+  - Binary operations: operands must be compatible, result type follows:
+    * i32 + i32 -> i32
+    * f64 + f64 -> f64
+    * i32 + f64 -> f64 (implicit conversion)
+    * str + str -> str
+  - Array literal [1, 2, 3] -> [i32]
+  - Array indexing [T][i32] -> T
+  - Option<T> operations preserve T
+
+BACKWARD DIRECTION (Context -> Expression):
+  - Function argument position constrains expression type
+  - Variable declaration initializer constrains expression type
+  - Return statement constrains expression type
+  - Assignment target constrains expression type
+
+BIDIRECTIONAL INFERENCE:
+  - Use forward direction for types with no context
+  - Use backward direction when context available
+  - If both directions give different types: ERROR
+  - Unresolved variables: ERROR
+*/
+
+// ============================================================================
+// PART 8: EXECUTION MODEL
+// ============================================================================
+
+/*
+EXECUTION MODEL:
+
+PROGRAM EXECUTION:
+  1. Parse entire program to AST
+  2. Resolve all declarations (procedure signatures)
+  3. Type-check all code
+  4. Execute main() if exists, else execute statements in order
+
+PROCEDURE EXECUTION:
+  1. Create new scope (frame) with parameters bound
+  2. Execute statements in order
+  3. When return encountered: pop frame, return value
+  4. When end of procedure reached: return void (if no return type)
+
+VARIABLE LIFETIME:
+  - Declared in block scope
+  - Created when declared
+  - Destroyed when scope exits
+  - Stack-allocated (not heap)
+
+MEMORY MODEL:
+  - Stack: Local variables, parameters
+  - Global: Global variables, procedure definitions
+  - No heap (arrays are value types, copied on assignment)
+
+STACK MACHINE (Bytecode):
+  - All values on evaluation stack
+  - Operations push/pop values
+  - Jump instructions for control flow
+  - Call stack for procedure calls
+*/
+
+// ============================================================================
+// PART 9: OPERATOR PRECEDENCE AND ASSOCIATIVITY
+// ============================================================================
+
+/*
+OPERATOR PRECEDENCE (highest to lowest):
+
+1. POSTFIX (left-associative)
+   - array[index]
+   - object.field
+   - func(args)
+   - x++ x--
+
+2. UNARY (right-associative)
+   - !x
+   - -x
+   - ++x --x
+   - &x *x
+
+3. POWER (right-associative)
+   - x ** y
+
+4. MULTIPLICATIVE (left-associative)
+   - x * y
+   - x / y
+   - x % y
+
+5. ADDITIVE (left-associative)
+   - x + y
+   - x - y
+
+6. SHIFT (left-associative)
+   - x << y
+   - x >> y
+
+7. BITWISE AND (left-associative)
+   - x & y
+
+8. BITWISE XOR (left-associative)
+   - x ^ y
+
+9. BITWISE OR (left-associative)
+   - x | y
+
+10. COMPARISON (left-associative, non-chainable)
+    - x < y
+    - x > y
+    - x <= y
+    - x >= y
+
+11. EQUALITY (left-associative)
+    - x == y
+    - x != y
+
+12. LOGICAL AND (left-associative)
+    - x and y
+
+13. LOGICAL OR (left-associative)
+    - x or y
+
+14. TERNARY (right-associative)
+    - x ? y : z
+
+15. ASSIGNMENT (right-associative)
+    - x = y
+    - x += y
+    - x -= y
+*/
+
+// ============================================================================
+// PART 10: FORMAL GRAMMAR IN EBNF NOTATION
+// ============================================================================
+
+/*
+EXTENDED BNF NOTATION:
+  { X } = zero or more repetitions of X
+  [ X ] = optional (0 or 1) X
+  ( X | Y ) = X or Y (alternation)
+  X Y = X followed by Y (sequence)
+  'X' = literal token X
+
+COMPLETE EBNF GRAMMAR:
+
+Program = { Declaration | Statement } ;
+
+Declaration = VarDeclaration
+            | ProcDeclaration
+            | TypeDeclaration
+            | ImportStatement ;
+
+VarDeclaration = 'var' Identifier [ ':' Type ] [ '=' Expression ] ';' ;
+
+ProcDeclaration = 'proc' Identifier '(' [ ParameterList ] ')' [ '->' Type ] Block ;
+
+ParameterList = Parameter { ',' Parameter } ;
+
+Parameter = Identifier ':' Type ;
+
+TypeDeclaration = 'type' Identifier '=' Type ';' ;
+
+ImportStatement = 'import' StringLiteral ';' ;
+
+Statement = ExpressionStatement
+          | Block
+          | IfStatement
+          | WhileStatement
+          | ForStatement
+          | ReturnStatement
+          | BreakStatement
+          | ContinueStatement
+          | TryStatement
+          | MatchStatement ;
+
+ExpressionStatement = Expression ';' ;
+
+Block = '{' { Statement } '}' ;
+
+IfStatement = 'if' Expression Block [ 'else' Block ] ;
+
+WhileStatement = 'while' Expression Block ;
+
+ForStatement = ( 'for' Identifier 'in' Expression Block )
+             | ( 'for' [ VarDeclaration ] ';' [ Expression ] ';' [ Expression ] Block ) ;
+
+ReturnStatement = 'return' [ Expression ] ';' ;
+
+BreakStatement = 'break' ';' ;
+
+ContinueStatement = 'continue' ';' ;
+
+TryStatement = 'try' Block { CatchClause } [ FinallyClause ] ;
+
+CatchClause = 'catch' '(' Identifier ':' Type ')' Block ;
+
+FinallyClause = 'finally' Block ;
+
+MatchStatement = 'match' Expression '{' { MatchCase } '}' ;
+
+MatchCase = Pattern '->' Expression ';' ;
+
+Pattern = Literal
+        | Identifier
+        | '_'
+        | '(' Pattern { ',' Pattern } ')'
+        | Identifier '(' [ Pattern { ',' Pattern } ] ')' ;
+
+Expression = Assignment ;
+
+Assignment = Ternary { ( '=' | '+=' | '-=' | '*=' | '/=' ) Ternary } ;
+
+Ternary = Or [ '?' Expression ':' Expression ] ;
+
+Or = And { 'or' And } ;
+
+And = Equality { 'and' Equality } ;
+
+Equality = Comparison { ( '==' | '!=' ) Comparison } ;
+
+Comparison = Bitwise { ( '<' | '>' | '<=' | '>=' ) Bitwise } ;
+
+Bitwise = Shift { ( '&' | '|' | '^' ) Shift } ;
+
+Shift = Additive { ( '<<' | '>>' ) Additive } ;
+
+Additive = Multiplicative { ( '+' | '-' ) Multiplicative } ;
+
+Multiplicative = Unary { ( '*' | '/' | '%' ) Unary } ;
+
+Unary = { ( '!' | '-' | '++' | '--' | '&' | '*' ) } Power ;
+
+Power = Postfix { '**' Postfix } ;
+
+Postfix = Primary { ( '[' Expression ']' ) 
+                   | ( '.' Identifier ) 
+                   | ( '(' [ ArgumentList ] ')' ) } ;
+
+Primary = Literal
+        | Identifier
+        | '(' Expression ')'
+        | Lambda
+        | ArrayLiteral
+        | MatchExpression ;
+
+Lambda = 'fn' '(' [ ParameterList ] ')' [ '->' Type ] Block ;
+
+ArrayLiteral = '[' [ Expression { ',' Expression } ] ']' ;
+
+MatchExpression = 'match' Expression '{' { MatchCase } '}' ;
+
+ArgumentList = Expression { ',' Expression } ;
+
+Literal = Number | StringLiteral | 'true' | 'false' | 'null' ;
+
+Type = PrimitiveType | CompositeType | GenericType | FunctionType ;
+
+PrimitiveType = 'i32' | 'i64' | 'f32' | 'f64' | 'str' | 'bool' | 'void' ;
+
+CompositeType = '[' Type ']'
+              | Identifier
+              | Type '?'
+              | 'result' '<' Type ',' Type '>' ;
+
+GenericType = Identifier '<' TypeArgs '>' ;
+
+TypeArgs = Type { ',' Type } ;
+
+FunctionType = 'fn' '(' [ TypeList ] ')' '->' Type ;
+
+TypeList = Type { ',' Type } ;
+
+Identifier = Letter { Letter | Digit | '_' } ;
+
+Number = [ '-' ] Digit { Digit } [ '.' Digit { Digit } ] ;
+
+StringLiteral = '"' { CharExcept('"') | '\\' Any } '"' ;
+
+Letter = 'a'..'z' | 'A'..'Z' | '_' ;
+
+Digit = '0'..'9' ;
+*/
+
+// ============================================================================
+// IMPLEMENTATION NOTES
+// ============================================================================
+
+proc printGrammarSummary() {
+    print("=== LYRA NNLT FORMAL GRAMMAR ===")
+    print("Version: v2.3.22.2")
+    print("")
+    print("LEXICAL LEVEL:")
+    print("  ✓ Whitespace handling")
+    print("  ✓ Comment syntax")
+    print("  ✓ Token definitions")
+    print("")
+    print("SYNTAX LEVEL:")
+    print("  ✓ Statement grammar")
+    print("  ✓ Expression grammar")
+    print("  ✓ Type grammar")
+    print("")
+    print("SEMANTIC LEVEL:")
+    print("  ✓ Scope rules")
+    print("  ✓ Type checking rules")
+    print("  ✓ Evaluation order")
+    print("  ✓ Control flow semantics")
+    print("")
+    print("OPERATOR LEVEL:")
+    print("  ✓ Precedence (15 levels)")
+    print("  ✓ Associativity")
+    print("  ✓ Type coercion")
+    print("")
+    print("EXECUTION MODEL:")
+    print("  ✓ Stack-based execution")
+    print("  ✓ Scope/frame management")
+    print("  ✓ Memory model")
+    print("")
+    print("STATUS: Complete formal specification")
+}

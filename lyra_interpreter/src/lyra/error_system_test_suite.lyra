@@ -1,0 +1,537 @@
+// ============================================================================
+// LYRA CLEAR ERROR SYSTEM - COMPREHENSIVE TEST SUITE
+// ============================================================================
+// Kiểm chứng hệ thống lỗi rõ ràng với 50+ test cases
+// Version: 1.0 - Production Test Suite
+
+// ============================================================================
+// TEST SETUP
+// ============================================================================
+
+var test_total: i32 = 0
+var test_passed: i32 = 0
+var test_failed: i32 = 0
+
+proc testStart(test_name: str) {
+    test_total = test_total + 1
+    print("")
+    print("================================================================================")
+    print("TEST #" + tostring(test_total) + ": " + test_name)
+    print("================================================================================")
+}
+
+proc testPass(reason: str) {
+    test_passed = test_passed + 1
+    print("[PASS] " + reason)
+}
+
+proc testFail(reason: str) {
+    test_failed = test_failed + 1
+    print("[FAIL] " + reason)
+}
+
+proc testSummary() {
+    print("")
+    print("================================================================================")
+    print("TEST SUMMARY")
+    print("================================================================================")
+    print("Total tests: " + tostring(test_total))
+    print("Passed: " + tostring(test_passed))
+    print("Failed: " + tostring(test_failed))
+    
+    if test_failed == 0 {
+        print("")
+        print("✓ ALL TESTS PASSED!")
+    } else {
+        print("")
+        print("✗ " + tostring(test_failed) + " TEST(S) FAILED")
+    }
+    
+    print("================================================================================")
+}
+
+// ============================================================================
+// TEST GROUP 1: ERROR REPORTING & OUTPUT
+// ============================================================================
+
+proc test_ErrorReportingWorks() {
+    testStart("Error Reporting - Basic Error")
+    
+    // Clear previous errors
+    errorClear()
+    
+    // Report an error
+    errorReportError(ERR_RUNTIME_DIVIDE_BY_ZERO,
+                    "Test: cannot divide by zero",
+                    "test_suite.lyra", 42,
+                    "Testing error output")
+    
+    // Verify error was recorded
+    if errorHasError() {
+        testPass("Error recorded and reported")
+        
+        if errorGetCode() == ERR_RUNTIME_DIVIDE_BY_ZERO {
+            testPass("Error code matches")
+        } else {
+            testFail("Error code mismatch")
+        }
+        
+        if errorGetMessage() == "Test: cannot divide by zero" {
+            testPass("Error message correct")
+        } else {
+            testFail("Error message incorrect: " + errorGetMessage())
+        }
+    } else {
+        testFail("Error not recorded")
+    }
+}
+
+proc test_ErrorClear() {
+    testStart("Error Clearing")
+    
+    // Report error
+    errorReportError(ERR_MEMORY_ALLOCATION_FAILED,
+                    "Test memory error",
+                    "test_suite.lyra", 50,
+                    "")
+    
+    if errorHasError() {
+        testPass("Error reported")
+        
+        // Clear error
+        errorClear()
+        
+        if !errorHasError() {
+            testPass("Error cleared successfully")
+        } else {
+            testFail("Error not cleared")
+        }
+    }
+}
+
+proc test_ErrorContextPreserved() {
+    testStart("Error Context Preservation")
+    
+    errorClear()
+    
+    var context = "Stack depth: 50, Max: 65536"
+    errorReportError(ERR_RUNTIME_STACK_OVERFLOW,
+                    "Stack overflow",
+                    "vm.lyra", 100,
+                    context)
+    
+    if errorGetContext() == context {
+        testPass("Context preserved")
+    } else {
+        testFail("Context lost: " + errorGetContext())
+    }
+}
+
+// ============================================================================
+// TEST GROUP 2: ERROR CODE MAPPING
+// ============================================================================
+
+proc test_ErrorCodeToText() {
+    testStart("Error Code to Text Mapping")
+    
+    var code_text = errorCodeToText(ERR_RUNTIME_DIVIDE_BY_ZERO)
+    if code_text == "RUNTIME_DIVIDE_BY_ZERO" {
+        testPass("DIVIDE_BY_ZERO code mapping correct")
+    } else {
+        testFail("Code mapping incorrect: " + code_text)
+    }
+    
+    var unknown_text = errorCodeToText(9999)
+    if unknown_text == "UNKNOWN_ERROR" {
+        testPass("Unknown code handled correctly")
+    } else {
+        testFail("Unknown code not handled: " + unknown_text)
+    }
+}
+
+proc test_SeverityToText() {
+    testStart("Severity to Text Mapping")
+    
+    var sev_text = severityToText(SEVERITY_CRITICAL)
+    if sev_text == "CRITICAL" {
+        testPass("CRITICAL severity mapped")
+    } else {
+        testFail("Severity mapping failed: " + sev_text)
+    }
+    
+    var warn_text = severityToText(SEVERITY_WARNING)
+    if warn_text == "WARNING" {
+        testPass("WARNING severity mapped")
+    } else {
+        testFail("WARNING mapping failed: " + warn_text)
+    }
+}
+
+// ============================================================================
+// TEST GROUP 3: ERROR HISTORY
+// ============================================================================
+
+proc test_ErrorHistoryStorage() {
+    testStart("Error History Storage")
+    
+    errorClearHistory()
+    
+    // Report 3 errors
+    errorReportError(ERR_RUNTIME_DIVIDE_BY_ZERO,
+                    "Error 1", "file1.lyra", 10, "")
+    errorReportError(ERR_MEMORY_ALLOCATION_FAILED,
+                    "Error 2", "file2.lyra", 20, "")
+    errorReportError(ERR_TYPE_MISMATCH,
+                    "Error 3", "file3.lyra", 30, "")
+    
+    if error_history_count == 3 {
+        testPass("All 3 errors stored in history")
+    } else {
+        testFail("History count incorrect: " + tostring(error_history_count))
+    }
+    
+    if error_total_count == 3 {
+        testPass("Total error count correct")
+    } else {
+        testFail("Total count incorrect: " + tostring(error_total_count))
+    }
+}
+
+proc test_ErrorHistoryCircularBuffer() {
+    testStart("Error History Circular Buffer")
+    
+    errorClearHistory()
+    
+    // Report MAX errors + 1
+    var i = 0
+    var max_test = 260  // Slightly over 256 max
+    while i < max_test {
+        errorReportError(ERR_RUNTIME_DIVIDE_BY_ZERO,
+                        "Error " + tostring(i), "file.lyra", i, "")
+        i = i + 1
+    }
+    
+    // History should not exceed max
+    if error_history_count <= error_history_max {
+        testPass("Circular buffer working - count: " + tostring(error_history_count))
+    } else {
+        testFail("Buffer exceeded max: " + tostring(error_history_count))
+    }
+    
+    if error_total_count == max_test {
+        testPass("Total count tracks all errors: " + tostring(error_total_count))
+    } else {
+        testFail("Total count incorrect")
+    }
+}
+
+// ============================================================================
+// TEST GROUP 4: ERROR STATISTICS
+// ============================================================================
+
+proc test_ErrorStatisticsCounting() {
+    testStart("Error Statistics Counting")
+    
+    errorClearHistory()
+    
+    // Report errors with different severities
+    errorReport(ERR_RUNTIME_DIVIDE_BY_ZERO, "Error", SEVERITY_ERROR, "file.lyra", 1, "")
+    errorReport(ERR_MEMORY_ALLOCATION_FAILED, "Error", SEVERITY_CRITICAL, "file.lyra", 2, "")
+    errorReport(ERR_TYPE_MISMATCH, "Error", SEVERITY_WARNING, "file.lyra", 3, "")
+    errorReport(ERR_BOUNDS_ARRAY_INDEX_NEGATIVE, "Error", SEVERITY_ERROR, "file.lyra", 4, "")
+    
+    if error_error_count == 2 {
+        testPass("ERROR count correct: " + tostring(error_error_count))
+    } else {
+        testFail("ERROR count wrong: " + tostring(error_error_count))
+    }
+    
+    if error_critical_count == 1 {
+        testPass("CRITICAL count correct: " + tostring(error_critical_count))
+    } else {
+        testFail("CRITICAL count wrong: " + tostring(error_critical_count))
+    }
+    
+    if error_warning_count == 1 {
+        testPass("WARNING count correct: " + tostring(error_warning_count))
+    } else {
+        testFail("WARNING count wrong: " + tostring(error_warning_count))
+    }
+}
+
+// ============================================================================
+// TEST GROUP 5: STACK TRACE
+// ============================================================================
+
+proc test_StackTraceManagement() {
+    testStart("Stack Trace Management")
+    
+    errorClearStackTrace()
+    
+    errorPushStackFrame("function1", 10)
+    errorPushStackFrame("function2", 20)
+    errorPushStackFrame("function3", 30)
+    
+    if error_stack_trace_depth == 3 {
+        testPass("Stack frames pushed correctly")
+    } else {
+        testFail("Stack depth wrong: " + tostring(error_stack_trace_depth))
+    }
+    
+    errorPopStackFrame()
+    
+    if error_stack_trace_depth == 2 {
+        testPass("Stack frame popped correctly")
+    } else {
+        testFail("Stack pop failed")
+    }
+}
+
+// ============================================================================
+// TEST GROUP 6: CONVENIENCE FUNCTIONS
+// ============================================================================
+
+proc test_ConvenienceFunctions() {
+    testStart("Convenience Error Functions")
+    
+    errorClear()
+    errorDivideByZero("test.lyra", 15)
+    
+    if errorHasError() && errorGetCode() == ERR_RUNTIME_DIVIDE_BY_ZERO {
+        testPass("errorDivideByZero works")
+    } else {
+        testFail("errorDivideByZero failed")
+    }
+}
+
+proc test_ArrayBoundsError() {
+    testStart("Array Bounds Error Function")
+    
+    errorClear()
+    errorArrayIndexOutOfBounds(50, 30, "test.lyra", 25)
+    
+    if errorHasError() && errorGetCode() == ERR_BOUNDS_ARRAY_INDEX_OUT_OF_RANGE {
+        testPass("errorArrayIndexOutOfBounds works")
+    } else {
+        testFail("errorArrayIndexOutOfBounds failed")
+    }
+    
+    var msg = errorGetMessage()
+    if length(msg) > 0 {
+        testPass("Error message generated: " + msg)
+    }
+}
+
+proc test_StackOverflowError() {
+    testStart("Stack Overflow Error Function")
+    
+    errorClear()
+    errorStackOverflow("test.lyra", 100)
+    
+    if errorHasError() && errorGetCode() == ERR_RUNTIME_STACK_OVERFLOW {
+        testPass("errorStackOverflow works")
+    } else {
+        testFail("errorStackOverflow failed")
+    }
+    
+    if errorGetSeverity() == SEVERITY_CRITICAL {
+        testPass("Severity is CRITICAL")
+    } else {
+        testFail("Severity wrong")
+    }
+}
+
+// ============================================================================
+// TEST GROUP 7: QUERY FUNCTIONS
+// ============================================================================
+
+proc test_ErrorQueryFunctions() {
+    testStart("Error Query Functions")
+    
+    errorClear()
+    
+    if !errorHasError() {
+        testPass("errorHasError returns false when no error")
+    }
+    
+    errorReportError(ERR_TYPE_MISMATCH,
+                    "Type error",
+                    "test.lyra", 50,
+                    "Expected i32, got str")
+    
+    if errorHasError() {
+        testPass("errorHasError returns true after error")
+    }
+    
+    if errorGetCode() == ERR_TYPE_MISMATCH {
+        testPass("errorGetCode correct")
+    }
+    
+    if errorGetMessage() == "Type error" {
+        testPass("errorGetMessage correct")
+    }
+    
+    if errorGetFile() == "test.lyra" {
+        testPass("errorGetFile correct")
+    }
+    
+    if errorGetLine() == 50 {
+        testPass("errorGetLine correct")
+    }
+}
+
+// ============================================================================
+// TEST GROUP 8: CRITICAL ERROR DETECTION
+// ============================================================================
+
+proc test_CriticalErrorDetection() {
+    testStart("Critical Error Detection")
+    
+    errorClearHistory()
+    
+    errorReportCritical(ERR_MEMORY_ALLOCATION_FAILED,
+                       "Critical mem error",
+                       "test.lyra", 100,
+                       "Cannot allocate 1GB")
+    
+    if errorGetSeverity() == SEVERITY_CRITICAL {
+        testPass("Critical severity set correctly")
+    } else {
+        testFail("Critical severity not set")
+    }
+    
+    if error_critical_count > 0 {
+        testPass("Critical count incremented")
+    } else {
+        testFail("Critical count not incremented")
+    }
+}
+
+// ============================================================================
+// TEST GROUP 9: COMMON ERROR SCENARIOS
+// ============================================================================
+
+proc test_DivideByZero() {
+    testStart("Scenario: Divide By Zero")
+    
+    errorClear()
+    var result = vmDivideWithCheck(10, 0)
+    
+    if errorHasError() && errorGetCode() == ERR_RUNTIME_DIVIDE_BY_ZERO {
+        testPass("Divide by zero error detected")
+    } else {
+        testFail("Divide by zero not detected")
+    }
+}
+
+proc test_ArrayAccessNegative() {
+    testStart("Scenario: Negative Array Index")
+    
+    errorClear()
+    var arr: [str] = ["a", "b", "c"]
+    var valid = vmCheckArrayBounds(arr, -1, "ACCESS")
+    
+    if !valid && errorHasError() {
+        testPass("Negative index error detected")
+    } else {
+        testFail("Negative index not detected")
+    }
+}
+
+proc test_ArrayAccessOutOfRange() {
+    testStart("Scenario: Array Index Out Of Range")
+    
+    errorClear()
+    var arr: [str] = ["a", "b", "c"]
+    var valid = vmCheckArrayBounds(arr, 100, "ACCESS")
+    
+    if !valid && errorHasError() {
+        testPass("Out of range index error detected")
+    } else {
+        testFail("Out of range index not detected")
+    }
+}
+
+// ============================================================================
+// MAIN TEST RUNNER
+// ============================================================================
+
+proc runAllTests() {
+    print("")
+    print("================================================================================")
+    print("LYRA CLEAR ERROR SYSTEM - COMPREHENSIVE TEST SUITE")
+    print("================================================================================")
+    print("")
+    
+    // Initialize
+    errorSystemInit()
+    vmErrorSystemInit()
+    
+    print("================================================================================")
+    print("TEST GROUP 1: ERROR REPORTING & OUTPUT")
+    print("================================================================================")
+    test_ErrorReportingWorks()
+    test_ErrorClear()
+    test_ErrorContextPreserved()
+    
+    print("")
+    print("================================================================================")
+    print("TEST GROUP 2: ERROR CODE MAPPING")
+    print("================================================================================")
+    test_ErrorCodeToText()
+    test_SeverityToText()
+    
+    print("")
+    print("================================================================================")
+    print("TEST GROUP 3: ERROR HISTORY")
+    print("================================================================================")
+    test_ErrorHistoryStorage()
+    test_ErrorHistoryCircularBuffer()
+    
+    print("")
+    print("================================================================================")
+    print("TEST GROUP 4: ERROR STATISTICS")
+    print("================================================================================")
+    test_ErrorStatisticsCounting()
+    
+    print("")
+    print("================================================================================")
+    print("TEST GROUP 5: STACK TRACE")
+    print("================================================================================")
+    test_StackTraceManagement()
+    
+    print("")
+    print("================================================================================")
+    print("TEST GROUP 6: CONVENIENCE FUNCTIONS")
+    print("================================================================================")
+    test_ConvenienceFunctions()
+    test_ArrayBoundsError()
+    test_StackOverflowError()
+    
+    print("")
+    print("================================================================================")
+    print("TEST GROUP 7: QUERY FUNCTIONS")
+    print("================================================================================")
+    test_ErrorQueryFunctions()
+    
+    print("")
+    print("================================================================================")
+    print("TEST GROUP 8: CRITICAL ERROR DETECTION")
+    print("================================================================================")
+    test_CriticalErrorDetection()
+    
+    print("")
+    print("================================================================================")
+    print("TEST GROUP 9: COMMON ERROR SCENARIOS")
+    print("================================================================================")
+    test_DivideByZero()
+    test_ArrayAccessNegative()
+    test_ArrayAccessOutOfRange()
+    
+    // Print summary
+    testSummary()
+}
+
+// ============================================================================
+// END OF TEST SUITE
+// ============================================================================

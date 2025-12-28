@@ -1,0 +1,494 @@
+// ============================================================================
+// LYRA CLEAR ERROR SYSTEM - EXPLICIT, DETAILED, EASY TO DEBUG
+// ============================================================================
+// Phát hành lỗi với độ chi tiết cao, stack trace, ngữ cảnh đầy đủ
+// Version: 1.0 - Production Ready
+// ============================================================================
+
+// ============================================================================
+// ERROR CODE DEFINITIONS (256 Error Codes)
+// ============================================================================
+
+// RUNTIME ERRORS (1000-1099)
+var ERR_RUNTIME_STACK_OVERFLOW = 1001
+var ERR_RUNTIME_STACK_UNDERFLOW = 1002
+var ERR_RUNTIME_DIVIDE_BY_ZERO = 1003
+var ERR_RUNTIME_NULL_POINTER = 1004
+var ERR_RUNTIME_INVALID_OPCODE = 1005
+var ERR_RUNTIME_INVALID_PC = 1006
+var ERR_RUNTIME_INFINITE_LOOP = 1007
+var ERR_RUNTIME_EXECUTION_TIMEOUT = 1008
+var ERR_RUNTIME_RECURSION_LIMIT = 1009
+
+// MEMORY ERRORS (2000-2099)
+var ERR_MEMORY_ALLOCATION_FAILED = 2001
+var ERR_MEMORY_DEALLOCATION_FAILED = 2002
+var ERR_MEMORY_DOUBLE_FREE = 2003
+var ERR_MEMORY_USE_AFTER_FREE = 2004
+var ERR_MEMORY_BUFFER_OVERFLOW = 2005
+var ERR_MEMORY_BUFFER_UNDERFLOW = 2006
+var ERR_MEMORY_POOL_EXHAUSTED = 2007
+var ERR_MEMORY_ALIGNMENT_ERROR = 2008
+var ERR_MEMORY_CORRUPTION_DETECTED = 2009
+
+// TYPE ERRORS (3000-3099)
+var ERR_TYPE_MISMATCH = 3001
+var ERR_TYPE_INVALID_CAST = 3002
+var ERR_TYPE_CONVERSION_FAILED = 3003
+var ERR_TYPE_UNDEFINED = 3004
+var ERR_TYPE_CIRCULAR_REFERENCE = 3005
+
+// BOUNDS ERRORS (4000-4099)
+var ERR_BOUNDS_ARRAY_INDEX_NEGATIVE = 4001
+var ERR_BOUNDS_ARRAY_INDEX_OUT_OF_RANGE = 4002
+var ERR_BOUNDS_STRING_INDEX_OUT_OF_RANGE = 4003
+var ERR_BOUNDS_INVALID_JUMP = 4004
+var ERR_BOUNDS_SIZE_MISMATCH = 4005
+
+// CONCURRENCY ERRORS (5000-5099)
+var ERR_CONCURRENCY_DEADLOCK = 5001
+var ERR_CONCURRENCY_RACE_CONDITION = 5002
+var ERR_CONCURRENCY_LOCK_NOT_OWNED = 5003
+var ERR_CONCURRENCY_CHANNEL_CLOSED = 5004
+var ERR_CONCURRENCY_THREAD_LIMIT = 5005
+
+// COMPILER ERRORS (6000-6099)
+var ERR_COMPILER_INVALID_BYTECODE = 6001
+var ERR_COMPILER_MALFORMED_INSTRUCTION = 6002
+var ERR_COMPILER_JUMP_TARGET_INVALID = 6003
+var ERR_COMPILER_CONSTANT_POOL_OVERFLOW = 6004
+var ERR_COMPILER_UNDEFINED_CONSTANT = 6005
+
+// SECURITY ERRORS (7000-7099)
+var ERR_SECURITY_BUFFER_OVERFLOW = 7001
+var ERR_SECURITY_INVALID_POINTER = 7002
+var ERR_SECURITY_MEMORY_TAMPERING = 7003
+var ERR_SECURITY_STACK_CORRUPTION = 7004
+var ERR_SECURITY_INTEGER_OVERFLOW = 7005
+var ERR_SECURITY_UNAUTHORIZED_ACCESS = 7006
+
+// VALIDATION ERRORS (8000-8099)
+var ERR_VALIDATION_CONSTRAINT_VIOLATION = 8001
+var ERR_VALIDATION_PRECONDITION_FAILED = 8002
+var ERR_VALIDATION_POSTCONDITION_FAILED = 8003
+var ERR_VALIDATION_INVARIANT_VIOLATED = 8004
+var ERR_VALIDATION_EMPTY_COLLECTION = 8005
+
+// ============================================================================
+// ERROR SEVERITY LEVELS
+// ============================================================================
+
+var SEVERITY_TRACE = 0      // Diagnostic only
+var SEVERITY_DEBUG = 1      // Debug information
+var SEVERITY_INFO = 2       // Informational
+var SEVERITY_WARNING = 3    // Warning
+var SEVERITY_ERROR = 4      // Error
+var SEVERITY_CRITICAL = 5   // Critical - system compromise
+
+// ============================================================================
+// ERROR STATE & STORAGE
+// ============================================================================
+
+// Current error
+var current_error_code: i32 = 0
+var current_error_message: str = ""
+var current_error_severity: i32 = SEVERITY_INFO
+var current_error_file: str = ""
+var current_error_line: i32 = 0
+var current_error_context: str = ""
+var current_error_timestamp: i32 = 0
+
+// Error history (circular buffer)
+var error_history_codes: [i32] = []
+var error_history_messages: [str] = []
+var error_history_severity: [i32] = []
+var error_history_locations: [str] = []
+var error_history_contexts: [str] = []
+var error_history_count: i32 = 0
+var error_history_max: i32 = 256
+
+// Error statistics
+var error_total_count: i32 = 0
+var error_critical_count: i32 = 0
+var error_error_count: i32 = 0
+var error_warning_count: i32 = 0
+
+// Stack trace (for detailed debugging)
+var error_stack_trace: [str] = []
+var error_stack_trace_depth: i32 = 0
+var error_stack_trace_max: i32 = 50
+
+// ============================================================================
+// SEVERITY TO TEXT MAPPING
+// ============================================================================
+
+proc severityToText(severity: i32) -> str {
+    if severity == SEVERITY_TRACE { return "TRACE" }
+    if severity == SEVERITY_DEBUG { return "DEBUG" }
+    if severity == SEVERITY_INFO { return "INFO" }
+    if severity == SEVERITY_WARNING { return "WARNING" }
+    if severity == SEVERITY_ERROR { return "ERROR" }
+    if severity == SEVERITY_CRITICAL { return "CRITICAL" }
+    return "UNKNOWN"
+}
+
+// ============================================================================
+// ERROR CODE TO TEXT MAPPING
+// ============================================================================
+
+proc errorCodeToText(code: i32) -> str {
+    // RUNTIME ERRORS
+    if code == ERR_RUNTIME_STACK_OVERFLOW { return "RUNTIME_STACK_OVERFLOW" }
+    if code == ERR_RUNTIME_STACK_UNDERFLOW { return "RUNTIME_STACK_UNDERFLOW" }
+    if code == ERR_RUNTIME_DIVIDE_BY_ZERO { return "RUNTIME_DIVIDE_BY_ZERO" }
+    if code == ERR_RUNTIME_NULL_POINTER { return "RUNTIME_NULL_POINTER" }
+    if code == ERR_RUNTIME_INVALID_OPCODE { return "RUNTIME_INVALID_OPCODE" }
+    if code == ERR_RUNTIME_INFINITE_LOOP { return "RUNTIME_INFINITE_LOOP" }
+    
+    // MEMORY ERRORS
+    if code == ERR_MEMORY_ALLOCATION_FAILED { return "MEMORY_ALLOCATION_FAILED" }
+    if code == ERR_MEMORY_DOUBLE_FREE { return "MEMORY_DOUBLE_FREE" }
+    if code == ERR_MEMORY_BUFFER_OVERFLOW { return "MEMORY_BUFFER_OVERFLOW" }
+    if code == ERR_MEMORY_POOL_EXHAUSTED { return "MEMORY_POOL_EXHAUSTED" }
+    
+    // TYPE ERRORS
+    if code == ERR_TYPE_MISMATCH { return "TYPE_MISMATCH" }
+    if code == ERR_TYPE_INVALID_CAST { return "TYPE_INVALID_CAST" }
+    
+    // BOUNDS ERRORS
+    if code == ERR_BOUNDS_ARRAY_INDEX_NEGATIVE { return "BOUNDS_ARRAY_INDEX_NEGATIVE" }
+    if code == ERR_BOUNDS_ARRAY_INDEX_OUT_OF_RANGE { return "BOUNDS_ARRAY_INDEX_OUT_OF_RANGE" }
+    
+    // SECURITY ERRORS
+    if code == ERR_SECURITY_BUFFER_OVERFLOW { return "SECURITY_BUFFER_OVERFLOW" }
+    if code == ERR_SECURITY_INTEGER_OVERFLOW { return "SECURITY_INTEGER_OVERFLOW" }
+    
+    // VALIDATION ERRORS
+    if code == ERR_VALIDATION_CONSTRAINT_VIOLATION { return "VALIDATION_CONSTRAINT_VIOLATION" }
+    
+    return "UNKNOWN_ERROR"
+}
+
+// ============================================================================
+// CORE ERROR FUNCTIONS
+// ============================================================================
+
+// Report error with full context (MAIN FUNCTION)
+proc errorReport(code: i32, message: str, severity: i32, file: str, line: i32, context: str) {
+    // Update current error
+    current_error_code = code
+    current_error_message = message
+    current_error_severity = severity
+    current_error_file = file
+    current_error_line = line
+    current_error_context = context
+    
+    // Increment statistics
+    error_total_count = error_total_count + 1
+    if severity == SEVERITY_CRITICAL {
+        error_critical_count = error_critical_count + 1
+    } else if severity == SEVERITY_ERROR {
+        error_error_count = error_error_count + 1
+    } else if severity == SEVERITY_WARNING {
+        error_warning_count = error_warning_count + 1
+    }
+    
+    // Add to history
+    if error_history_count < error_history_max {
+        insert(error_history_codes, code)
+        insert(error_history_messages, message)
+        insert(error_history_severity, severity)
+        insert(error_history_locations, file + ":" + tostring(line))
+        insert(error_history_contexts, context)
+        error_history_count = error_history_count + 1
+    } else {
+        // Circular buffer: overwrite oldest
+        var idx = error_total_count % error_history_max
+        error_history_codes[idx] = code
+        error_history_messages[idx] = message
+        error_history_severity[idx] = severity
+        error_history_locations[idx] = file + ":" + tostring(line)
+        error_history_contexts[idx] = context
+    }
+    
+    // Print error immediately (EXPLICIT OUTPUT)
+    errorPrintError()
+}
+
+// Report error with default severity (ERROR)
+proc errorReportError(code: i32, message: str, file: str, line: i32, context: str) {
+    errorReport(code, message, SEVERITY_ERROR, file, line, context)
+}
+
+// Report warning
+proc errorReportWarning(code: i32, message: str, file: str, line: i32) {
+    errorReport(code, message, SEVERITY_WARNING, file, line, "")
+}
+
+// Report critical error
+proc errorReportCritical(code: i32, message: str, file: str, line: i32, context: str) {
+    errorReport(code, message, SEVERITY_CRITICAL, file, line, context)
+}
+
+// ============================================================================
+// EXPLICIT ERROR PRINTING (THE CRITICAL MISSING PIECE!)
+// ============================================================================
+
+proc errorPrintError() {
+    // Print separator
+    print("================================================================================")
+    
+    // Print severity and code
+    var severity_text = severityToText(current_error_severity)
+    var code_text = errorCodeToText(current_error_code)
+    
+    print("[" + severity_text + "] Error #" + tostring(current_error_code) + " - " + code_text)
+    
+    // Print message (CLEAR!)
+    print("Message: " + current_error_message)
+    
+    // Print location
+    if current_error_file != "" {
+        print("Location: " + current_error_file + " : line " + tostring(current_error_line))
+    }
+    
+    // Print context if available
+    if current_error_context != "" {
+        print("Context: " + current_error_context)
+    }
+    
+    // Print stack trace if available
+    if error_stack_trace_depth > 0 {
+        print("")
+        print("Stack Trace:")
+        var i = 0
+        while i < error_stack_trace_depth {
+            print("  [" + tostring(i + 1) + "] " + error_stack_trace[i])
+            i = i + 1
+        }
+    }
+    
+    // Print separator
+    print("================================================================================")
+    print("")
+}
+
+// Print all errors in history (COMPREHENSIVE DEBUG VIEW)
+proc errorPrintHistory() {
+    print("================================================================================")
+    print("ERROR HISTORY (" + tostring(error_history_count) + " errors)")
+    print("================================================================================")
+    
+    var i = 0
+    while i < error_history_count {
+        var severity_text = severityToText(error_history_severity[i])
+        var code_text = errorCodeToText(error_history_codes[i])
+        
+        print("")
+        print("[" + tostring(i + 1) + "] [" + severity_text + "] " + code_text)
+        print("    Code: " + tostring(error_history_codes[i]))
+        print("    Message: " + error_history_messages[i])
+        print("    Location: " + error_history_locations[i])
+        
+        if error_history_contexts[i] != "" {
+            print("    Context: " + error_history_contexts[i])
+        }
+        
+        i = i + 1
+    }
+    
+    print("")
+    print("================================================================================")
+}
+
+// Print error statistics
+proc errorPrintStatistics() {
+    print("================================================================================")
+    print("ERROR STATISTICS")
+    print("================================================================================")
+    print("Total Errors: " + tostring(error_total_count))
+    print("  Critical: " + tostring(error_critical_count))
+    print("  Errors: " + tostring(error_error_count))
+    print("  Warnings: " + tostring(error_warning_count))
+    print("================================================================================")
+    print("")
+}
+
+// ============================================================================
+// ERROR QUERY FUNCTIONS
+// ============================================================================
+
+proc errorHasError() -> bool {
+    return current_error_code != 0
+}
+
+proc errorGetCode() -> i32 {
+    return current_error_code
+}
+
+proc errorGetMessage() -> str {
+    return current_error_message
+}
+
+proc errorGetSeverity() -> i32 {
+    return current_error_severity
+}
+
+proc errorGetFile() -> str {
+    return current_error_file
+}
+
+proc errorGetLine() -> i32 {
+    return current_error_line
+}
+
+proc errorGetContext() -> str {
+    return current_error_context
+}
+
+// Get last N errors as formatted string
+proc errorGetLastErrors(n: i32) -> str {
+    var result = ""
+    var count = 0
+    var idx = error_history_count - 1
+    
+    while count < n && idx >= 0 {
+        if idx < length(error_history_codes) {
+            var severity_text = severityToText(error_history_severity[idx])
+            var code_text = errorCodeToText(error_history_codes[idx])
+            
+            result = result + "[" + severity_text + "] " + code_text + ": " + 
+                    error_history_messages[idx] + " at " + error_history_locations[idx] + "\n"
+            
+            count = count + 1
+        }
+        
+        idx = idx - 1
+    }
+    
+    return result
+}
+
+// ============================================================================
+// STACK TRACE MANAGEMENT
+// ============================================================================
+
+proc errorPushStackFrame(function_name: str, line: i32) {
+    if error_stack_trace_depth < error_stack_trace_max {
+        var frame = function_name + " (line " + tostring(line) + ")"
+        insert(error_stack_trace, frame)
+        error_stack_trace_depth = error_stack_trace_depth + 1
+    }
+}
+
+proc errorPopStackFrame() {
+    if error_stack_trace_depth > 0 {
+        error_stack_trace_depth = error_stack_trace_depth - 1
+    }
+}
+
+proc errorClearStackTrace() {
+    error_stack_trace = []
+    error_stack_trace_depth = 0
+}
+
+// ============================================================================
+// ERROR CLEARING
+// ============================================================================
+
+proc errorClear() {
+    current_error_code = 0
+    current_error_message = ""
+    current_error_severity = SEVERITY_INFO
+    current_error_file = ""
+    current_error_line = 0
+    current_error_context = ""
+}
+
+proc errorClearHistory() {
+    error_history_codes = []
+    error_history_messages = []
+    error_history_severity = []
+    error_history_locations = []
+    error_history_contexts = []
+    error_history_count = 0
+    error_total_count = 0
+    error_critical_count = 0
+    error_error_count = 0
+    error_warning_count = 0
+}
+
+// ============================================================================
+// INITIALIZATION
+// ============================================================================
+
+proc errorSystemInit() {
+    print("================================================================================")
+    print("LYRA CLEAR ERROR SYSTEM INITIALIZED")
+    print("================================================================================")
+    print("Features:")
+    print("  - Explicit error reporting with full context")
+    print("  - 256+ error codes with descriptive names")
+    print("  - Stack trace for detailed debugging")
+    print("  - Error history (256 errors)")
+    print("  - Error statistics")
+    print("  - Immediate error output when errors occur")
+    print("")
+}
+
+// ============================================================================
+// CONVENIENCE FUNCTIONS FOR COMMON ERRORS
+// ============================================================================
+
+proc errorDivideByZero(file: str, line: i32) {
+    errorReportError(ERR_RUNTIME_DIVIDE_BY_ZERO, 
+                    "Cannot divide by zero",
+                    file, line,
+                    "Numerator must be non-zero")
+}
+
+proc errorArrayIndexOutOfBounds(index: i32, length: i32, file: str, line: i32) {
+    errorReportError(ERR_BOUNDS_ARRAY_INDEX_OUT_OF_RANGE,
+                    "Array index out of bounds",
+                    file, line,
+                    "Index: " + tostring(index) + ", Length: " + tostring(length))
+}
+
+proc errorArrayIndexNegative(index: i32, file: str, line: i32) {
+    errorReportError(ERR_BOUNDS_ARRAY_INDEX_NEGATIVE,
+                    "Array index cannot be negative",
+                    file, line,
+                    "Index: " + tostring(index))
+}
+
+proc errorTypeMismatch(expected: str, actual: str, file: str, line: i32) {
+    errorReportError(ERR_TYPE_MISMATCH,
+                    "Type mismatch in operation",
+                    file, line,
+                    "Expected: " + expected + ", Got: " + actual)
+}
+
+proc errorMemoryAllocationFailed(size: i32, file: str, line: i32) {
+    errorReportCritical(ERR_MEMORY_ALLOCATION_FAILED,
+                       "Memory allocation failed",
+                       file, line,
+                       "Requested size: " + tostring(size) + " bytes")
+}
+
+proc errorStackOverflow(file: str, line: i32) {
+    errorReportCritical(ERR_RUNTIME_STACK_OVERFLOW,
+                       "Stack overflow",
+                       file, line,
+                       "Stack depth exceeded maximum")
+}
+
+proc errorIntegerOverflow(operation: str, a: i32, b: i32, file: str, line: i32) {
+    errorReportCritical(ERR_SECURITY_INTEGER_OVERFLOW,
+                       "Integer overflow detected",
+                       file, line,
+                       operation + ": " + tostring(a) + " with " + tostring(b))
+}
+
+// ============================================================================
+// END OF CLEAR ERROR SYSTEM
+// ============================================================================

@@ -1,0 +1,498 @@
+// ==============================================================================
+// FEZZ COMPREHENSIVE AUDIT & VALIDATION
+// Validates all 5 critical bug fixes in bytecode analysis
+// ==============================================================================
+
+// Test 1: Dependency Analysis - Verify last_write is properly initialized
+proc testFezzDependenciesFixed() {
+    print("\n============ TEST 1: Dependency Analysis Fix ============")
+    
+    var bytecode: [LyraFezzBytecode] = []
+    
+    // Create simple bytecode with dependencies
+    // Instruction 0: ADD r0, r1  (depends on r1)
+    var instr0: LyraFezzBytecode = {
+        opcode: 0,
+        operands: [1, 0],  // src=r1, dest=r0
+        fezz_latency: 1,
+        fezz_parallelism: 8,
+        fezz_critical: false,
+        fezz_can_speculate: true,
+        fezz_predicted_taken: false,
+        fezz_confidence: 0,
+        fezz_prefetch_addr: -1,
+        fezz_phys_src1: -1,
+        fezz_phys_src2: -1,
+        fezz_phys_dest: -1,
+        fezz_exec_unit: 0,
+        predicted_value: 0
+    }
+    
+    // Instruction 1: MUL r2, r0  (depends on r0 from instruction 0)
+    var instr1: LyraFezzBytecode = {
+        opcode: 2,
+        operands: [0, 2],  // src=r0 (from instr 0), dest=r2
+        fezz_latency: 3,
+        fezz_parallelism: 8,
+        fezz_critical: false,
+        fezz_can_speculate: true,
+        fezz_predicted_taken: false,
+        fezz_confidence: 0,
+        fezz_prefetch_addr: -1,
+        fezz_phys_src1: -1,
+        fezz_phys_src2: -1,
+        fezz_phys_dest: -1,
+        fezz_exec_unit: 0,
+        predicted_value: 0
+    }
+    
+    // Instruction 2: ADD r3, r1  (no dependency on r0)
+    var instr2: LyraFezzBytecode = {
+        opcode: 0,
+        operands: [1, 3],  // src=r1, dest=r3
+        fezz_latency: 1,
+        fezz_parallelism: 8,
+        fezz_critical: false,
+        fezz_can_speculate: true,
+        fezz_predicted_taken: false,
+        fezz_confidence: 0,
+        fezz_prefetch_addr: -1,
+        fezz_phys_src1: -1,
+        fezz_phys_src2: -1,
+        fezz_phys_dest: -1,
+        fezz_exec_unit: 0,
+        predicted_value: 0
+    }
+    
+    insert(bytecode, instr0)
+    insert(bytecode, instr1)
+    insert(bytecode, instr2)
+    
+    // Analyze
+    bytecode = fezzAnalyzeDependencies(bytecode)
+    
+    print("✓ Instr 0 (ADD r0, r1): parallelism = " + string(bytecode[0].fezz_parallelism) + " (expect 8)")
+    print("✓ Instr 1 (MUL r2, r0): parallelism = " + string(bytecode[1].fezz_parallelism) + " (expect 1 - depends on r0)")
+    print("✓ Instr 2 (ADD r3, r1): parallelism = " + string(bytecode[2].fezz_parallelism) + " (expect 8 - no dependency)")
+    
+    if bytecode[1].fezz_parallelism == 1 {
+        print("[PASS] Dependency detection working correctly! 🎯")
+        return true
+    } else {
+        print("[FAIL] Dependency detection broken - instr 1 should be 1, got " + string(bytecode[1].fezz_parallelism))
+        return false
+    }
+}
+
+// Test 2: Branch Prediction - Verify backward/forward detection
+proc testFezzBranchPredictionFixed() {
+    print("\n============ TEST 2: Branch Prediction Fix ============")
+    
+    var bytecode: [LyraFezzBytecode] = []
+    
+    // Instruction 0-4: Some normal instructions
+    var i = 0
+    while i < 5 {
+        var instr: LyraFezzBytecode = {
+            opcode: 0,
+            operands: [0, 1],
+            fezz_latency: 1,
+            fezz_parallelism: 8,
+            fezz_critical: false,
+            fezz_can_speculate: true,
+            fezz_predicted_taken: false,
+            fezz_confidence: 0,
+            fezz_prefetch_addr: -1,
+            fezz_phys_src1: -1,
+            fezz_phys_src2: -1,
+            fezz_phys_dest: -1,
+            fezz_exec_unit: 0,
+            predicted_value: 0
+        }
+        insert(bytecode, instr)
+        i = i + 1
+    }
+    
+    // Instruction 5: Backward branch (to instruction 2 - loop)
+    var backward_branch: LyraFezzBytecode = {
+        opcode: 6,
+        operands: [2],  // Target=2 (backward, loop)
+        fezz_latency: 1,
+        fezz_parallelism: 8,
+        fezz_critical: false,
+        fezz_can_speculate: true,
+        fezz_predicted_taken: false,
+        fezz_confidence: 0,
+        fezz_prefetch_addr: -1,
+        fezz_phys_src1: -1,
+        fezz_phys_src2: -1,
+        fezz_phys_dest: -1,
+        fezz_exec_unit: 0,
+        predicted_value: 0
+    }
+    insert(bytecode, backward_branch)
+    
+    // Instruction 6: Forward branch (to instruction 8 - if/else)
+    var forward_branch: LyraFezzBytecode = {
+        opcode: 6,
+        operands: [8],  // Target=8 (forward, if)
+        fezz_latency: 1,
+        fezz_parallelism: 8,
+        fezz_critical: false,
+        fezz_can_speculate: true,
+        fezz_predicted_taken: false,
+        fezz_confidence: 0,
+        fezz_prefetch_addr: -1,
+        fezz_phys_src1: -1,
+        fezz_phys_src2: -1,
+        fezz_phys_dest: -1,
+        fezz_exec_unit: 0,
+        predicted_value: 0
+    }
+    insert(bytecode, forward_branch)
+    
+    // Analyze
+    bytecode = fezzAnalyzeBranches(bytecode)
+    
+    var backward = bytecode[5]
+    var forward = bytecode[6]
+    
+    print("✓ Backward branch (to 2): predicted=" + string(backward.fezz_predicted_taken) + 
+          ", confidence=" + string(backward.fezz_confidence) + " (expect true, 95)")
+    print("✓ Forward branch (to 8): predicted=" + string(forward.fezz_predicted_taken) + 
+          ", confidence=" + string(forward.fezz_confidence) + " (expect false, 70)")
+    
+    if backward.fezz_predicted_taken && backward.fezz_confidence == 95 &&
+       !forward.fezz_predicted_taken && forward.fezz_confidence == 70 {
+        print("[PASS] Branch prediction working correctly! 🎯")
+        return true
+    } else {
+        print("[FAIL] Branch prediction incorrect")
+        return false
+    }
+}
+
+// Test 3: Critical Path Marking - Verify high latency detection
+proc testFezzCriticalPathFixed() {
+    print("\n============ TEST 3: Critical Path Marking Fix ============")
+    
+    var bytecode: [LyraFezzBytecode] = []
+    
+    // Instruction 0: Low latency (ADD)
+    var add_instr: LyraFezzBytecode = {
+        opcode: 0,
+        operands: [0, 1],
+        fezz_latency: 1,
+        fezz_parallelism: 8,
+        fezz_critical: false,
+        fezz_can_speculate: true,
+        fezz_predicted_taken: false,
+        fezz_confidence: 0,
+        fezz_prefetch_addr: -1,
+        fezz_phys_src1: -1,
+        fezz_phys_src2: -1,
+        fezz_phys_dest: -1,
+        fezz_exec_unit: 0,
+        predicted_value: 0
+    }
+    insert(bytecode, add_instr)
+    
+    // Instruction 1: Medium latency (MUL)
+    var mul_instr: LyraFezzBytecode = {
+        opcode: 2,
+        operands: [0, 1],
+        fezz_latency: 3,
+        fezz_parallelism: 8,
+        fezz_critical: false,
+        fezz_can_speculate: true,
+        fezz_predicted_taken: false,
+        fezz_confidence: 0,
+        fezz_prefetch_addr: -1,
+        fezz_phys_src1: -1,
+        fezz_phys_src2: -1,
+        fezz_phys_dest: -1,
+        fezz_exec_unit: 0,
+        predicted_value: 0
+    }
+    insert(bytecode, mul_instr)
+    
+    // Instruction 2: High latency (LOAD)
+    var load_instr: LyraFezzBytecode = {
+        opcode: 4,
+        operands: [100],
+        fezz_latency: 4,
+        fezz_parallelism: 8,
+        fezz_critical: false,
+        fezz_can_speculate: true,
+        fezz_predicted_taken: false,
+        fezz_confidence: 0,
+        fezz_prefetch_addr: -1,
+        fezz_phys_src1: -1,
+        fezz_phys_src2: -1,
+        fezz_phys_dest: -1,
+        fezz_exec_unit: 0,
+        predicted_value: 0
+    }
+    insert(bytecode, load_instr)
+    
+    // Instruction 3: Very high latency (DIV)
+    var div_instr: LyraFezzBytecode = {
+        opcode: 3,
+        operands: [1, 2],
+        fezz_latency: 20,
+        fezz_parallelism: 8,
+        fezz_critical: false,
+        fezz_can_speculate: true,
+        fezz_predicted_taken: false,
+        fezz_confidence: 0,
+        fezz_prefetch_addr: -1,
+        fezz_phys_src1: -1,
+        fezz_phys_src2: -1,
+        fezz_phys_dest: -1,
+        fezz_exec_unit: 0,
+        predicted_value: 0
+    }
+    insert(bytecode, div_instr)
+    
+    // Analyze
+    bytecode = fezzMarkCriticalPath(bytecode)
+    
+    print("✓ Instr 0 (ADD, lat=1): critical=" + string(bytecode[0].fezz_critical) + " (expect false)")
+    print("✓ Instr 1 (MUL, lat=3): critical=" + string(bytecode[1].fezz_critical) + " (expect true)")
+    print("✓ Instr 2 (LOAD, lat=4): critical=" + string(bytecode[2].fezz_critical) + " (expect true)")
+    print("✓ Instr 3 (DIV, lat=20): critical=" + string(bytecode[3].fezz_critical) + " (expect true)")
+    
+    if !bytecode[0].fezz_critical && bytecode[1].fezz_critical && 
+       bytecode[2].fezz_critical && bytecode[3].fezz_critical {
+        print("[PASS] Critical path detection working! 🎯")
+        return true
+    } else {
+        print("[FAIL] Critical path detection incorrect")
+        return false
+    }
+}
+
+// Test 4: Speculation Safety - Verify store barriers
+proc testFezzSpeculationFixed() {
+    print("\n============ TEST 4: Speculation Safety Fix ============")
+    
+    var bytecode: [LyraFezzBytecode] = []
+    
+    // Instructions 0-2: Can speculate
+    var i = 0
+    while i < 3 {
+        var instr: LyraFezzBytecode = {
+            opcode: 0,
+            operands: [0, 1],
+            fezz_latency: 1,
+            fezz_parallelism: 8,
+            fezz_critical: false,
+            fezz_can_speculate: true,
+            fezz_predicted_taken: false,
+            fezz_confidence: 0,
+            fezz_prefetch_addr: -1,
+            fezz_phys_src1: -1,
+            fezz_phys_src2: -1,
+            fezz_phys_dest: -1,
+            fezz_exec_unit: 0,
+            predicted_value: 0
+        }
+        insert(bytecode, instr)
+        i = i + 1
+    }
+    
+    // Instruction 3: STORE - barrier
+    var store: LyraFezzBytecode = {
+        opcode: 5,
+        operands: [100, 5],
+        fezz_latency: 1,
+        fezz_parallelism: 8,
+        fezz_critical: false,
+        fezz_can_speculate: true,
+        fezz_predicted_taken: false,
+        fezz_confidence: 0,
+        fezz_prefetch_addr: -1,
+        fezz_phys_src1: -1,
+        fezz_phys_src2: -1,
+        fezz_phys_dest: -1,
+        fezz_exec_unit: 0,
+        predicted_value: 0
+    }
+    insert(bytecode, store)
+    
+    // Instructions 4-6: Close to store - cannot speculate
+    var j = 0
+    while j < 3 {
+        var instr: LyraFezzBytecode = {
+            opcode: 0,
+            operands: [0, 1],
+            fezz_latency: 1,
+            fezz_parallelism: 8,
+            fezz_critical: false,
+            fezz_can_speculate: true,
+            fezz_predicted_taken: false,
+            fezz_confidence: 0,
+            fezz_prefetch_addr: -1,
+            fezz_phys_src1: -1,
+            fezz_phys_src2: -1,
+            fezz_phys_dest: -1,
+            fezz_exec_unit: 0,
+            predicted_value: 0
+        }
+        insert(bytecode, instr)
+        j = j + 1
+    }
+    
+    // Analyze
+    bytecode = fezzAnalyzeSpeculation(bytecode)
+    
+    print("✓ Instr 0 (before store): spec=" + string(bytecode[0].fezz_can_speculate) + " (expect true)")
+    print("✓ Instr 3 (STORE): spec=" + string(bytecode[3].fezz_can_speculate) + " (expect false)")
+    print("✓ Instr 4 (after store): spec=" + string(bytecode[4].fezz_can_speculate) + " (expect false - too close)")
+    print("✓ Instr 6 (far after store): spec=" + string(bytecode[6].fezz_can_speculate) + " (expect false - still close)")
+    
+    if bytecode[0].fezz_can_speculate && !bytecode[3].fezz_can_speculate && 
+       !bytecode[4].fezz_can_speculate {
+        print("[PASS] Speculation safety working! 🎯")
+        return true
+    } else {
+        print("[FAIL] Speculation safety incorrect")
+        return false
+    }
+}
+
+// Test 5: Integration - Verify all passes work together
+proc testFezzFullPipelineFixed() {
+    print("\n============ TEST 5: Full Analysis Pipeline ============")
+    
+    // Create realistic bytecode with dependencies, branches, and memory ops
+    var bytecode: [LyraFezzBytecode] = []
+    
+    // Loop: ADD, MUL, LOAD, DIV, STORE, BRANCH backward
+    var instructions: [i32] = [
+        0,  // ADD
+        2,  // MUL (depends on ADD)
+        4,  // LOAD
+        3,  // DIV (depends on MUL)
+        5,  // STORE
+        6   // BRANCH (to 0)
+    ]
+    
+    var i = 0
+    while i < length(instructions) {
+        var opcode = instructions[i]
+        var latency = 1
+        
+        if opcode == 2 {
+            latency = 3
+        } else if opcode == 3 {
+            latency = 20
+        } else if opcode == 4 {
+            latency = 4
+        }
+        
+        var instr: LyraFezzBytecode = {
+            opcode: opcode,
+            operands: [0, 1, 2],
+            fezz_latency: latency,
+            fezz_parallelism: 8,
+            fezz_critical: false,
+            fezz_can_speculate: true,
+            fezz_predicted_taken: false,
+            fezz_confidence: 0,
+            fezz_prefetch_addr: -1,
+            fezz_phys_src1: -1,
+            fezz_phys_src2: -1,
+            fezz_phys_dest: -1,
+            fezz_exec_unit: 0,
+            predicted_value: 0
+        }
+        
+        // Set special operand for branch
+        if opcode == 6 {
+            instr.operands = [0]  // Jump back to 0
+        }
+        
+        insert(bytecode, instr)
+        i = i + 1
+    }
+    
+    // Run all analysis passes
+    bytecode = fezzCalculateLatency(bytecode)
+    bytecode = fezzAnalyzeDependencies(bytecode)
+    bytecode = fezzRegisterRenaming(bytecode)
+    bytecode = fezzDetectLoopsInBytecode(bytecode)
+    bytecode = fezzAnalyzePrefetchOps(bytecode)
+    bytecode = fezzAnalyzeBranches(bytecode)
+    bytecode = fezzMarkCriticalPath(bytecode)
+    bytecode = fezzAnalyzeSpeculation(bytecode)
+    bytecode = fezzAssignExecutionUnits(bytecode)
+    bytecode = fezzCalculateConfidence(bytecode)
+    
+    print("✓ All 10-pass analysis completed successfully")
+    print("✓ Total instructions: " + string(length(bytecode)))
+    
+    // Count critical instructions
+    var critical_count = 0
+    var spec_safe = 0
+    i = 0
+    while i < length(bytecode) {
+        if bytecode[i].fezz_critical {
+            critical_count = critical_count + 1
+        }
+        if bytecode[i].fezz_can_speculate {
+            spec_safe = spec_safe + 1
+        }
+        i = i + 1
+    }
+    
+    print("✓ Critical path instructions: " + string(critical_count))
+    print("✓ Speculatable instructions: " + string(spec_safe))
+    
+    if critical_count > 0 && length(bytecode) == 6 {
+        print("[PASS] Full pipeline working correctly! 🎯")
+        return true
+    } else {
+        print("[FAIL] Pipeline issue")
+        return false
+    }
+}
+
+// Main audit
+proc fezzComprehensiveAudit() {
+    print("\n" + "="*70)
+    print(" FEZZ COMPREHENSIVE AUDIT - All 5 Bug Fixes Validation")
+    print("="*70)
+    
+    var pass_count = 0
+    var total = 5
+    
+    if testFezzDependenciesFixed() {
+        pass_count = pass_count + 1
+    }
+    
+    if testFezzBranchPredictionFixed() {
+        pass_count = pass_count + 1
+    }
+    
+    if testFezzCriticalPathFixed() {
+        pass_count = pass_count + 1
+    }
+    
+    if testFezzSpeculationFixed() {
+        pass_count = pass_count + 1
+    }
+    
+    if testFezzFullPipelineFixed() {
+        pass_count = pass_count + 1
+    }
+    
+    print("\n" + "="*70)
+    print(" FINAL RESULT: " + string(pass_count) + "/" + string(total) + " TESTS PASSED")
+    if pass_count == total {
+        print(" ✅ ALL FEZZ FIXES VALIDATED - READY FOR DEPLOYMENT!")
+    } else {
+        print(" ⚠️  Some tests failed - review fixes needed")
+    }
+    print("="*70 + "\n")
+}

@@ -1,0 +1,347 @@
+// ============================================================================
+// LYRA NNLT v2.3.22.2 - ENHANCED ERROR MESSAGING SYSTEM
+// ============================================================================
+// Rich context, suggestions, expected vs actual, source location
+
+// ============================================================================
+// ERROR MESSAGE BUILDER
+// ============================================================================
+
+var error_messages: [str]
+var error_contexts: [str]
+var error_suggestions: [str]
+var error_locations: [str]
+var detailed_error_count: i32 = 0
+
+// Enhanced error with full context
+proc reportErrorWithContext(code: i32, message: str, 
+                            expected: str, actual: str, 
+                            location: str, suggestion: str) {
+    if detailed_error_count >= 1000 return
+    
+    // Build rich error message
+    var full_message = ""
+    
+    // Line 1: Error code and category
+    full_message = full_message + "[ERROR " + tostring(code) + "] "
+    full_message = full_message + getErrorCategory(code) + "\n"
+    
+    // Line 2: Main message
+    full_message = full_message + "  Message: " + message + "\n"
+    
+    // Line 3: Location info
+    if location != "" {
+        full_message = full_message + "  Location: " + location + "\n"
+    }
+    
+    // Line 4: Expected vs Actual
+    if expected != "" {
+        full_message = full_message + "  Expected: " + expected + "\n"
+        full_message = full_message + "  Actual:   " + actual + "\n"
+    }
+    
+    // Line 5: Suggestion
+    if suggestion != "" {
+        full_message = full_message + "  Suggestion: " + suggestion + "\n"
+    }
+    
+    insert(error_messages, full_message)
+    insert(error_contexts, message)
+    insert(error_suggestions, suggestion)
+    insert(error_locations, location)
+    detailed_error_count = detailed_error_count + 1
+    
+    print(full_message)
+}
+
+// Get error category name
+proc getErrorCategory(code: i32) -> str {
+    if code >= 1000 && code < 1200 { return "VM ERROR" }
+    if code >= 2000 && code < 2200 { return "MEMORY ERROR" }
+    if code >= 3000 && code < 3200 { return "TYPE ERROR" }
+    if code >= 4000 && code < 4200 { return "BOUNDS ERROR" }
+    if code >= 5000 && code < 5200 { return "CONCURRENCY ERROR" }
+    if code >= 6000 && code < 6200 { return "COMPILER ERROR" }
+    if code >= 7000 && code < 7200 { return "SECURITY ERROR" }
+    if code >= 8000 && code < 8200 { return "VALIDATION ERROR" }
+    return "UNKNOWN ERROR"
+}
+
+// ============================================================================
+// SPECIFIC ERROR REPORTERS (with context)
+// ============================================================================
+
+// Stack underflow error
+proc reportStackUnderflow(location: str) {
+    reportErrorWithContext(
+        ERR_VM_STACK_UNDERFLOW,
+        "Stack is empty, cannot pop value",
+        "stack with at least 1 element",
+        "empty stack",
+        location,
+        "Check pop() call; ensure push() called first"
+    )
+}
+
+// Stack overflow error
+proc reportStackOverflow(location: str, current_depth: i32, max_depth: i32) {
+    reportErrorWithContext(
+        ERR_VM_STACK_OVERFLOW,
+        "Stack depth exceeded",
+        "stack depth <= " + tostring(max_depth),
+        tostring(current_depth),
+        location,
+        "Increase MAX_STACK_DEPTH or reduce call depth"
+    )
+}
+
+// Type mismatch error
+proc reportTypeMismatch(location: str, expected: str, actual: str) {
+    reportErrorWithContext(
+        ERR_TYPE_MISMATCH,
+        "Type mismatch in expression",
+        expected,
+        actual,
+        location,
+        "Use explicit type conversion: to" + expected + "(" + actual + ")"
+    )
+}
+
+// Array bounds error
+proc reportArrayBoundsError(location: str, index: i32, length: i32) {
+    reportErrorWithContext(
+        ERR_BOUNDS_ARRAY_INDEX,
+        "Array index out of bounds",
+        "index in range [0, " + tostring(length - 1) + "]",
+        tostring(index),
+        location,
+        "Check: if (" + tostring(index) + " >= 0 && " + tostring(index) + " < " + tostring(length) + ")"
+    )
+}
+
+// Invalid opcode error
+proc reportInvalidOpcode(location: str, opcode: i32) {
+    reportErrorWithContext(
+        ERR_VM_INVALID_OPCODE,
+        "Invalid bytecode instruction",
+        "opcode in range [1, 20]",
+        tostring(opcode),
+        location,
+        "Check bytecode compiler; may be corrupted bytecode"
+    )
+}
+
+// Undefined variable error
+proc reportUndefinedVariable(location: str, var_name: str) {
+    reportErrorWithContext(
+        3000,  // Generic type error
+        "Variable not defined",
+        "variable '" + var_name + "' in current scope",
+        "not found",
+        location,
+        "Declare with: var " + var_name + " = value"
+    )
+}
+
+// Function not found error
+proc reportFunctionNotFound(location: str, func_name: str) {
+    reportErrorWithContext(
+        3001,  // Type error
+        "Function not defined",
+        "function '" + func_name + "' in registry",
+        "not found",
+        location,
+        "Define function with: proc " + func_name + "() { }"
+    )
+}
+
+// Division by zero error
+proc reportDivisionByZero(location: str) {
+    reportErrorWithContext(
+        ERR_VM_DIVISION_BY_ZERO,
+        "Division by zero",
+        "divisor != 0",
+        "0",
+        location,
+        "Add guard: if divisor != 0 { ... } else { handle_error }"
+    )
+}
+
+// ============================================================================
+// COMPILE-TIME ERROR REPORTING
+// ============================================================================
+
+var compile_errors: [str]
+var compile_error_count: i32 = 0
+
+// Report compilation error with suggestions
+proc reportCompileError(file: str, line: i32, col: i32, 
+                       error: str, expected: str, actual: str,
+                       suggestion: str) {
+    var full_error = file + ":" + tostring(line) + ":" + tostring(col) + "\n"
+    full_error = full_error + "  ERROR: " + error + "\n"
+    full_error = full_error + "  Expected: " + expected + "\n"
+    full_error = full_error + "  Got: " + actual + "\n"
+    full_error = full_error + "  Suggestion: " + suggestion + "\n"
+    
+    insert(compile_errors, full_error)
+    compile_error_count = compile_error_count + 1
+    
+    print(full_error)
+}
+
+// Syntax error
+proc reportSyntaxError(file: str, line: i32, token: str) {
+    reportCompileError(
+        file, line, 0,
+        "Syntax error",
+        "valid keyword or expression",
+        token,
+        "Check syntax near this token; refer to language spec"
+    )
+}
+
+// Type annotation error
+proc reportMissingTypeAnnotation(file: str, line: i32, var_name: str) {
+    reportCompileError(
+        file, line, 0,
+        "Type annotation required",
+        "explicit type for variable '" + var_name + "'",
+        "no type annotation",
+        "Add type: var " + var_name + ": i32 = value"
+    )
+}
+
+// Function signature error
+proc reportFunctionSignatureError(file: str, line: i32, func_name: str,
+                                 expected_params: i32, actual_params: i32) {
+    reportCompileError(
+        file, line, 0,
+        "Function call argument count mismatch",
+        tostring(expected_params) + " arguments",
+        tostring(actual_params) + " arguments",
+        "Check function signature; verify all required arguments passed"
+    )
+}
+
+// ============================================================================
+// RUNTIME ERROR REPORTING WITH CONTEXT
+// ============================================================================
+
+var runtime_errors: [str]
+var runtime_error_count: i32 = 0
+var last_error_context: str = ""
+var last_error_suggestion: str = ""
+
+// Report runtime error with full context
+proc reportRuntimeError(code: i32, message: str, context: str, 
+                       expected: str, actual: str, suggestion: str) {
+    var report = ""
+    
+    report = report + "═══════════════════════════════════════════\n"
+    report = report + "RUNTIME ERROR [" + tostring(code) + "]\n"
+    report = report + "───────────────────────────────────────────\n"
+    report = report + "Message:    " + message + "\n"
+    
+    if context != "" {
+        report = report + "Context:    " + context + "\n"
+    }
+    
+    if expected != "" {
+        report = report + "Expected:   " + expected + "\n"
+        report = report + "Got:        " + actual + "\n"
+    }
+    
+    if suggestion != "" {
+        report = report + "Action:     " + suggestion + "\n"
+    }
+    
+    report = report + "═══════════════════════════════════════════\n"
+    
+    insert(runtime_errors, report)
+    runtime_error_count = runtime_error_count + 1
+    last_error_context = context
+    last_error_suggestion = suggestion
+    
+    print(report)
+}
+
+// ============================================================================
+// ERROR MESSAGE FORMATTING
+// ============================================================================
+
+// Format error with source code excerpt
+proc formatErrorWithSource(file: str, line: i32, error_msg: str) -> str {
+    var formatted = ""
+    
+    // Show file and line
+    formatted = formatted + file + ":" + tostring(line) + ": error\n"
+    
+    // Show error message
+    formatted = formatted + "  " + error_msg + "\n"
+    
+    // Would show source code line here (if available)
+    
+    return formatted
+}
+
+// Format error with callstack
+proc formatErrorWithCallstack(error_msg: str, callstack: [str]) -> str {
+    var formatted = error_msg + "\n"
+    formatted = formatted + "Callstack:\n"
+    
+    var i = 0
+    while i < length(callstack) {
+        formatted = formatted + "  at " + callstack[i] + "\n"
+        i = i + 1
+    }
+    
+    return formatted
+}
+
+// ============================================================================
+// ERROR MESSAGE IMPROVEMENTS
+// ============================================================================
+
+// Example: Improved error messages (before vs after)
+
+// BEFORE: "Invalid bytecode"
+// AFTER:  "Invalid bytecode instruction at position 42
+//          Expected: opcode in [LOAD_CONST=0x01, LOAD_VAR=0x02, ...]
+//          Got:      opcode 0xFF (unrecognized)
+//          Suggestion: bytecode may be corrupted; verify compiler output"
+
+// BEFORE: "Type mismatch"
+// AFTER:  "Type mismatch in assignment at line 15
+//          Expected: i32
+//          Got:      str
+//          Suggestion: use tostring() or tonumber() for conversion"
+
+// BEFORE: "Array out of bounds"
+// AFTER:  "Array index out of bounds at line 23
+//          Expected: index in range [0, 9]
+//          Got:      index 42
+//          Suggestion: check array length before access: if (i < length(arr))"
+
+// ============================================================================
+// INITIALIZATION
+// ============================================================================
+
+proc initEnhancedErrorSystem() {
+    print("ENHANCED ERROR MESSAGING SYSTEM INITIALIZED")
+    print("  ✓ Rich error context enabled")
+    print("  ✓ Suggestions system active")
+    print("  ✓ Expected vs actual tracking")
+    print("  ✓ Source location reporting")
+}
+
+proc dumpErrorMessages() {
+    print("=== ERROR MESSAGES GENERATED ===")
+    print("Detailed errors: " + tostring(detailed_error_count))
+    print("Compilation errors: " + tostring(compile_error_count))
+    print("Runtime errors: " + tostring(runtime_error_count))
+    
+    if length(last_error_suggestion) > 0 {
+        print("Last suggestion: " + last_error_suggestion)
+    }
+}
