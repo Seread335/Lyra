@@ -1,0 +1,27 @@
+// Test ILP - Independent Operations
+proc test_independent() {
+    var a: i32 = 10
+    var b: i32 = 20
+    var c: i32 = 30
+    
+    a = a + 5
+    b = b * 2
+    c = c - 3
+    
+    print a
+    print b
+    print c
+}
+
+// Test Dependent Operations
+proc test_dependent() {
+    var x: i32 = 5
+    x = x + 10
+    x = x * 2
+    print x
+}
+
+print "=== ILP Parallelism Test ==="
+test_independent()
+test_dependent()
+print "=== Complete ==="

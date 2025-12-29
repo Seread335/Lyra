@@ -1,0 +1,59 @@
+// ILP (Instruction-Level Parallelism) Test
+
+// Test 1: Independent operations - can execute in parallel
+proc test_independent() -> void {
+    var a: i32 = 10;
+    var b: i32 = 20;
+    var c: i32 = 30;
+    var d: i32 = 40;
+    
+    // All independent - 4-wide parallelism
+    a = a + 5;
+    b = b * 2;
+    c = c - 3;
+    d = d / 2;
+    
+    print(a);
+    print(b);
+    print(c);
+    print(d);
+}
+
+// Test 2: Dependent operations - must be sequential
+proc test_dependent() -> void {
+    var x: i32 = 5;
+    
+    // Each depends on previous - IPC = 1.0
+    x = x + 10;
+    x = x * 2;
+    x = x - 5;
+    
+    print(x);
+}
+
+// Test 3: Function call ILP
+proc add_nums(a: i32, b: i32) -> i32 {
+    return a + b;
+}
+
+proc test_func_ilp() -> void {
+    var r1: i32 = add_nums(10, 20);
+    var r2: i32 = add_nums(30, 40);
+    var r3: i32 = add_nums(50, 60);
+    
+    print(r1);
+    print(r2);
+    print(r3);
+}
+
+print("====== ILP PARALLELISM TEST ======");
+print("Test 1: Independent Operations");
+test_independent();
+print("");
+print("Test 2: Dependent Operations");
+test_dependent();
+print("");
+print("Test 3: Function Call ILP");
+test_func_ilp();
+print("");
+print("====== Test Complete ======");
