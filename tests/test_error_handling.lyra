@@ -1,0 +1,18 @@
+// Test error handling
+try {
+    var x: i32 = 10;
+    var y: i32 = 0;
+    var z: i32 = x / y;
+    println("Result:", z);
+} catch (err) {
+    println("Caught error!");
+}
+
+// Test 2: Should not catch
+try {
+    println("No error here");
+} catch (e) {
+    println("This should not print");
+}
+
+println("Program continues");

@@ -1,4 +1,4 @@
-# Installation & Usage Guide - Lyra Programming Language
+# Installation & Usage Guide - Lyra Programming Language v1.0.2-FEZZ
 
 ## Table of Contents
 - [Installation](#installation)

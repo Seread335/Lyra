@@ -1,4 +1,10 @@
-// Example 1: Simple arithmetic
+// ================================================================================
+// SIMPLE ARITHMETIC EXAMPLE - Lyra v1.0.2-FEZZ
+// Date: December 29, 2025
+// Description: Demonstrates basic arithmetic operations and function calls
+// ================================================================================
+
+// Basic addition function
 proc add(x: i32, y: i32) -> i32 {
     return x + y;
 }

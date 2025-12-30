@@ -1,0 +1,110 @@
+// Lyra Complete Feature Test - v1.0.2-FEZZ  
+// December 29, 2025
+
+println("========================================");
+println("Lyra Language - Feature Showcase");
+println("========================================");
+
+// === ARRAYS ===
+println("=== ARRAYS ===");
+var scores: [] = [95, 87, 92, 88, 90];
+println("Scores: array test");
+println("First score:", scores[0]);
+println("Number of scores:", len(scores));
+
+// === STRING OPERATIONS ===
+println("=== STRING OPERATIONS ===");
+var greeting: str = "Hello";
+var name: str = "Lyra";
+var message: str = greeting + " " + name;
+println("Message:", message);
+println("Length:", len(message));
+println("Uppercase:", toUpperCase(message));
+println("Contains Lyra:", contains(message, "Lyra"));
+
+// === FOR LOOPS ===
+println("=== FOR LOOPS ===");
+for score in scores {
+    println("Score:", score);
+}
+
+var nums: str = "";
+for i in 5 {
+    nums = nums + i + " ";
+}
+println("Loop result:", nums);
+
+// === BREAK & CONTINUE ===
+println("=== BREAK & CONTINUE ===");
+var result: str = "";
+for i in 10 {
+    if i == 3 {
+        continue;
+    }
+    if i == 7 {
+        break;
+    }
+    result = result + i + " ";
+}
+println("Result:", result);
+
+// === SWITCH ===
+println("=== SWITCH STATEMENT ===");
+var grade: i32 = 2;
+switch grade {
+    case 1:
+        println("Grade A");
+        break;
+    case 2:
+        println("Grade B");
+        break;
+    default:
+        println("Grade Unknown");
+}
+
+// === MATH ===
+println("=== MATH FUNCTIONS ===");
+println("Abs -42:", abs(-42));
+println("Min 10,5,20:", min(10, 5, 20));
+println("Max 10,5,20:", max(10, 5, 20));
+println("Pow 2,3:", pow(2, 3));
+
+// === TRY-CATCH ===
+println("=== TRY-CATCH ===");
+try {
+    var x: i32 = 10;
+    var y: i32 = 0;
+    var z: i32 = x / y;
+    println("Result:", z);
+} catch (err) {
+    println("Error caught");
+}
+
+// === FUNCTIONS ===
+println("=== FUNCTIONS ===");
+proc sumArray(arr: []) {
+    var total: i32 = 0;
+    for num in arr {
+        total = total + num;
+    }
+    return total;
+}
+
+var numbers: [] = [1, 2, 3, 4, 5];
+println("Sum:", sumArray(numbers));
+
+// === RECURSION ===
+println("=== RECURSION ===");
+proc factorial(n: i32) {
+    if n <= 1 {
+        return 1;
+    }
+    return n * factorial(n - 1);
+}
+
+println("Factorial 5:", factorial(5));
+println("Factorial 6:", factorial(6));
+
+println("========================================");
+println("Tests Complete - Lyra v1.0.2-FEZZ");
+println("========================================");

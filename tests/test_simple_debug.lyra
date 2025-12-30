@@ -1,0 +1,24 @@
+// Simple diagnostic test to find variable assignment bug
+var x: i32 = 10
+print("x initialized to 10")
+
+x = 20
+print("x assigned 20, value: " + toString(x))
+
+var y: i32 = 5
+y = y + 3
+print("y = y + 3, result: " + toString(y))
+
+var sum: i32 = 0
+sum = sum + 100
+print("sum = sum + 100, result: " + toString(sum))
+
+var counter: i32 = 0
+var i: i32 = 0
+while i < 5 {
+    counter = counter + 1
+    i = i + 1
+}
+print("After loop: counter = " + toString(counter))
+
+print("=== Diagnostic Complete ===")

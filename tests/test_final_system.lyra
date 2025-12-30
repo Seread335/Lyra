@@ -1,0 +1,44 @@
+// Comprehensive system test
+println("╔════════════════════════════════════╗");
+println("║   LYRA ERROR HANDLING SYSTEM TEST  ║");
+println("╚════════════════════════════════════╝");
+
+// Test 1: Proper error reporting
+println("");
+println("TEST 1: Error reporting system");
+try {
+    x = 100 / 0;
+} catch (e) {
+    println("✓ Exception caught:", e);
+}
+
+// Test 2: Array operations
+println("");
+println("TEST 2: Array operations");
+arr = [10, 20, 30, 40, 50];
+println("Array:", arr);
+println("Length:", arr.length);
+println("First element:", arr[0]);
+println("Last element:", arr[4]);
+
+// Test 3: Error recovery
+println("");
+println("TEST 3: Error recovery");
+errors_caught = 0;
+try {
+    bad = arr[100];
+} catch (e) {
+    errors_caught = errors_caught + 1;
+}
+try {
+    bad = 50 % 0;
+} catch (e) {
+    errors_caught = errors_caught + 1;
+}
+println("Errors caught:", errors_caught);
+println("Program continues after errors");
+
+println("");
+println("╔════════════════════════════════════╗");
+println("║       ALL TESTS COMPLETED          ║");
+println("╚════════════════════════════════════╝");

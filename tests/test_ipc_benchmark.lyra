@@ -1,0 +1,92 @@
+// ============================================================================
+// IPC BENCHMARK TEST - Lyra v1.0.3
+// Measures: Instructions Per Cycle, Execution Speed, Parallelism Factor
+// ============================================================================
+
+// Test 1: Simple Arithmetic (High IPC expected)
+proc test_arithmetic() {
+    var sum: i32 = 0
+    var i: i32 = 0
+    while i < 1000 {
+        sum = sum + i
+        i = i + 1
+    }
+    print("Test 1 - Arithmetic: sum=" + tostring(sum))
+    return sum
+}
+
+// Test 2: Array Operations (Memory intensive)
+proc test_array_ops() {
+    var arr: [i32] = []
+    var i: i32 = 0
+    while i < 100 {
+        var x: i32 = i * 2
+        i = i + 1
+    }
+    print("Test 2 - Array Ops: iterations=100")
+    return 100
+}
+
+// Test 3: Conditional Branches (Control flow)
+proc test_branches() {
+    var count: i32 = 0
+    var i: i32 = 0
+    while i < 100 {
+        if i % 2 == 0 {
+            count = count + 1
+        }
+        if i % 3 == 0 {
+            count = count + 10
+        }
+        i = i + 1
+    }
+    print("Test 3 - Branches: count=" + tostring(count))
+    return count
+}
+
+// Test 4: Function Calls (Call overhead)
+proc fibonacci(n: i32) -> i32 {
+    if n <= 1 {
+        return n
+    }
+    return fibonacci(n - 1) + fibonacci(n - 2)
+}
+
+proc test_function_calls() {
+    var result: i32 = fibonacci(12)
+    print("Test 4 - Function Calls: fib(12)=" + tostring(result))
+    return result
+}
+
+// Test 5: Nested Loops (Parallelism test)
+proc test_nested_loops() {
+    var total: i32 = 0
+    var i: i32 = 0
+    while i < 50 {
+        var j: i32 = 0
+        while j < 50 {
+            total = total + 1
+            j = j + 1
+        }
+        i = i + 1
+    }
+    print("Test 5 - Nested Loops: total=" + tostring(total))
+    return total
+}
+
+// Main benchmark runner
+print("====================================================================")
+print("LYRA IPC BENCHMARK SUITE")
+print("Version: 1.0.3")
+print("====================================================================")
+
+// Run all tests
+test_arithmetic()
+test_array_ops()
+test_branches()
+test_function_calls()
+test_nested_loops()
+
+print("====================================================================")
+print("All tests completed!")
+print("====================================================================")

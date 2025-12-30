@@ -1,0 +1,78 @@
+// Test comprehensive error handling
+println("=== Error Handling System Test ===");
+
+// Test 1: Division by zero
+println("");
+println("Test 1: Division by zero");
+try {
+    x = 10 / 0;
+    println("Should not reach here");
+} catch (err) {
+    println("✓ Caught:", err);
+}
+
+// Test 2: Array out of bounds
+println("");
+println("Test 2: Array out of bounds");
+try {
+    arr = [1, 2, 3];
+    val = arr[10];
+    println("Should not reach here");
+} catch (err) {
+    println("✓ Caught:", err);
+}
+
+// Test 3: Negative array index
+println("");
+println("Test 3: Negative array index");
+try {
+    arr = [1, 2, 3];
+    val = arr[-1];
+    println("Should not reach here");
+} catch (err) {
+    println("✓ Caught:", err);
+}
+
+// Test 4: Modulo by zero
+println("");
+println("Test 4: Modulo by zero");
+try {
+    x = 10 % 0;
+    println("Should not reach here");
+} catch (err) {
+    println("✓ Caught:", err);
+}
+
+// Test 5: Normal operation inside try
+println("");
+println("Test 5: Normal operation");
+try {
+    x = 10 / 2;
+    println("✓ Result:", x);
+} catch (err) {
+    println("Should not reach here");
+}
+
+// Test 6: Array valid access
+println("");
+println("Test 6: Valid array access");
+try {
+    arr = [10, 20, 30];
+    val = arr[1];
+    println("✓ Value at index 1:", val);
+} catch (err) {
+    println("Should not reach here");
+}
+
+// Test 7: Multiple operations in try
+println("");
+println("Test 7: Multiple operations");
+try {
+    x = 10;
+    y = x / 0;
+} catch (err) {
+    println("✓ Caught multi-op error:", err);
+}
+
+println("");
+println("=== All error handling tests completed ===");

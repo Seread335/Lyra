@@ -1,6 +1,13 @@
-print("========== LYRA COMPREHENSIVE PROBLEM SOLVER ==========");
+// ================================================================================
+// LYRA COMPREHENSIVE PROBLEM SOLVER - v1.0.2-FEZZ
+// Date: December 29, 2025
+// Description: Comprehensive suite of 10 algorithmic problems
+// ================================================================================
 
-# Problem 1: Prime Checker
+print("========== LYRA COMPREHENSIVE PROBLEM SOLVER (v1.0.2-FEZZ) ==========");
+
+// Problem 1: Prime Checker
+// Tests if a number is prime
 proc is_prime(n: i32) -> i32 {
     if n < 2 { return 0; }
     var i: i32 = 2;
@@ -15,7 +22,8 @@ print("Problem 1 - Prime(17):");
 let p1: i32 = is_prime(17);
 print(p1);
 
-# Problem 2: Factorial
+// Problem 2: Factorial
+// Calculates factorial of n
 proc factorial(n: i32) -> i32 {
     if n <= 1 { return 1; }
     return n * factorial(n - 1);
@@ -24,7 +32,8 @@ proc factorial(n: i32) -> i32 {
 print("Problem 2 - Factorial(5):");
 let p2: i32 = factorial(5);
 print(p2);
-
+// Problem 3: GCD (Greatest Common Divisor)
+// Uses Euclidean algorithm
 # Problem 3: GCD
 proc gcd(a: i32, b: i32) -> i32 {
     if b == 0 { return a; }
@@ -34,7 +43,8 @@ proc gcd(a: i32, b: i32) -> i32 {
 print("Problem 3 - GCD(48,18):");
 let p3: i32 = gcd(48, 18);
 print(p3);
-
+// Problem 4: Sum Range
+// Sums all numbers from start to end (inclusive)
 # Problem 4: Sum Range
 proc sum_range(start: i32, end: i32) -> i32 {
     var sum: i32 = 0;
@@ -46,34 +56,40 @@ proc sum_range(start: i32, end: i32) -> i32 {
     return sum;
 }
 
+// Test Problem 4
 print("Problem 4 - Sum(1,10):");
 let p4: i32 = sum_range(1, 10);
 print(p4);
 
-# Problem 5: Fibonacci
+// Problem 5: Fibonacci
+// Calculates fibonacci(n) using recursion
 proc fibonacci(n: i32) -> i32 {
     if n <= 1 { return n; }
     return fibonacci(n - 1) + fibonacci(n - 2);
 }
 
+// Test Problem 5
 print("Problem 5 - Fibonacci(10):");
 let p5: i32 = fibonacci(10);
 print(p5);
 
-# Problem 6: Power
+// Problem 6: Power
+// Calculates base^exp using recursion
 proc power(base: i32, exp: i32) -> i32 {
     if exp == 0 { return 1; }
     return base * power(base, exp - 1);
 }
 
+// Test Problem 6
 print("Problem 6 - Power(2,8):");
 let p6: i32 = power(2, 8);
 print(p6);
 
-# Problem 7: Calculator
+// Problem 7: Basic Arithmetic Functions
 proc add(a: i32, b: i32) -> i32 { return a + b; }
 proc multiply(a: i32, b: i32) -> i32 { return a * b; }
 
+// Test Problem 7
 print("Problem 7 - Add(15,25):");
 let p7a: i32 = add(15, 25);
 print(p7a);
@@ -81,7 +97,8 @@ print("Problem 7 - Multiply(6,7):");
 let p7b: i32 = multiply(6, 7);
 print(p7b);
 
-# Problem 8: Max/Min
+// Problem 8: Max/Min Functions
+// Returns maximum or minimum of two integers
 proc max(a: i32, b: i32) -> i32 {
     if a > b { return a; }
     return b;
@@ -92,6 +109,7 @@ proc min(a: i32, b: i32) -> i32 {
     return b;
 }
 
+// Test Problem 8
 print("Problem 8 - Max(45,32):");
 let p8a: i32 = max(45, 32);
 print(p8a);
@@ -99,7 +117,8 @@ print("Problem 8 - Min(45,32):");
 let p8b: i32 = min(45, 32);
 print(p8b);
 
-# Problem 9: Even/Odd Checkers
+// Problem 9: Even/Odd Checkers
+// Determines if number is even or odd
 proc is_even(n: i32) -> i32 {
     if n % 2 == 0 { return 1; }
     return 0;
@@ -110,6 +129,7 @@ proc is_odd(n: i32) -> i32 {
     return 0;
 }
 
+// Test Problem 9
 print("Problem 9 - Even(4):");
 let p9a: i32 = is_even(4);
 print(p9a);
@@ -117,7 +137,8 @@ print("Problem 9 - Odd(7):");
 let p9b: i32 = is_odd(7);
 print(p9b);
 
-# Problem 10: Count Pattern
+// Problem 10: Counter Function
+// Counts from 1 to n
 proc count_to(n: i32) {
     var i: i32 = 1;
     while i <= n {
@@ -127,10 +148,11 @@ proc count_to(n: i32) {
     }
 }
 
+// Test Problem 10
 print("Problem 10 - Count(3):");
 count_to(3);
 
-print("========== COMPLETED ==========");
+print("========== COMPLETED (v1.0.2-FEZZ) ==========");
 
 
 

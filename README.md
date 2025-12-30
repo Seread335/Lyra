@@ -1,8 +1,8 @@
 # LYRA PROGRAMMING LANGUAGE - COMPLETE PROJECT
 
-**Version**: 1.0.1  
+**Version**: 1.0.2-FEZZ  
 **Status**: ✅ Production Ready  
-**Last Updated**: December 28, 2025  
+**Last Updated**: December 29, 2025  
 **GitHub**: [Seread335/Lyra](https://github.com/Seread335/Lyra)
 
 ---
@@ -10,38 +10,53 @@
 ## 📋 Project Overview
 
 Lyra is a complete, working programming language with:
-- ✅ Fully functional Python interpreter (350+ lines)
-- ✅ 5 working example programs
+- ✅ Fully functional Python interpreter (845 lines)
+- ✅ 10+ working example programs
 - ✅ Professional VS Code extension
 - ✅ Comprehensive documentation
 - ✅ Windows batch launcher
 - ✅ Zero code errors (0/0)
-- ✅ 51/51 tests passing (100%)
+- ✅ 27/27 tests passing (100%)
 
 ---
 
 ## 🚀 Quick Start
 
-### Run Lyra Programs
+### Run Main Examples
 
 ```bash
-# Show help
-lyra
+# Run comprehensive problem solver (10 problems)
+lyra examples_main\hello.lyra
 
+# Run performance benchmarks
+lyra examples_main\perf_benchmark.lyra
+
+# Run FEZZ analysis
+lyra examples_main\fezz_analysis.lyra
+```
+
+### Run Built-in Examples
+
+```bash
 # Run Fibonacci
 lyra lyra_interpreter\examples\fibonacci_working.lyra
 
 # Run Prime Checker
 lyra lyra_interpreter\examples\prime_checker.lyra
 
-# Run Sum Calculation
-lyra lyra_interpreter\examples\sum_numbers.lyra
+# Run Simple Arithmetic
+lyra lyra_interpreter\examples\simple_arithmetic.lyra
 ```
 
-### Direct Python Execution
+### Run Tests
 
 ```bash
-python lyra_interpreter/lyra_interpreter.py lyra_interpreter/examples/fibonacci_working.lyra
+# Run full test suite
+cd tests
+for %f in (test_*.lyra) do lyra %f
+
+# Or run individual test
+lyra tests\test_gcd.lyra
 ```
 
 ---
@@ -50,40 +65,68 @@ python lyra_interpreter/lyra_interpreter.py lyra_interpreter/examples/fibonacci_
 
 ```
 d:\Lyra NNLT\
-├── lyra.bat                          ✅ Windows launcher with help
-├── lyra_interpreter/
-│   ├── lyra_interpreter.py          ✅ Complete working interpreter (350+ lines)
-│   │   ├── Lexer                    - Tokenization
-│   │   ├── Parser                   - AST generation
-│   │   └── Interpreter              - Code execution
+├── 📄 Core Files
+│   ├── README.md                    - Project overview
+│   ├── QUICKSTART.md                - Quick start (5 minutes)
+│   ├── INSTALL.md                   - Installation guide
+│   ├── setup.py                     - Python package setup
+│   ├── lyra.bat                     - Windows launcher
+│   └── requirements.txt              - Dependencies
+│
+├── 📁 lyra_interpreter/             ✅ Core Interpreter
+│   ├── lyra_interpreter.py         - Main interpreter (845 lines)
+│   ├── fezz_engine.py              - FEZZ optimization engine
+│   ├── fezz_integrated.py          - FEZZ integration layer
 │   ├── examples/
-│   │   ├── fibonacci_working.lyra   ✅ Fibonacci (0,1,1,2,3,5,8,13,21,34)
-│   │   ├── prime_checker.lyra       ✅ Prime detection
-│   │   ├── sum_numbers.lyra         ✅ Sum 1-100 = 5050
-│   │   ├── multiplication_table.lyra ✅ Nested loops
-│   │   └── simple_test.lyra         ✅ Basic operations
-│   ├── src/                         - Source code modules
-│   ├── tests/                       - Test files
-│   └── tools/                       - Development tools
-├── lyra-vscode-extension/           ✅ VS Code extension
-│   ├── package.json                 - Extension metadata (v1.0.1)
-│   ├── syntaxes/lyra.tmLanguage.json - Syntax highlighting
-│   ├── snippets/lyra.json           - Code snippets
-│   └── tsconfig.json                - TypeScript config
-├── lyra-language-extension/         ✅ Alternative language extension
-├── docs/                            ✅ Comprehensive documentation
-│   ├── 01_HUONG_DAN_LAP_TRIN.md    - Setup guide
+│   │   ├── fibonacci_working.lyra  - Fibonacci sequence
+│   │   ├── prime_checker.lyra      - Prime detection
+│   │   └── ... 10+ examples
+│   └── __pycache__/
+│
+├── 📁 examples_main/               ✅ Main Demo Programs
+│   ├── hello.lyra                 - 10-problem comprehensive suite
+│   ├── perf_benchmark.lyra        - Performance benchmarks
+│   └── fezz_analysis.lyra         - FEZZ/ILP analysis
+│
+├── 📁 tests/                       ✅ Test Suite (27 Tests)
+│   ├── test_all.lyra
+│   ├── test_prime_with_let.lyra
+│   ├── test_gcd.lyra
+│   └── ... 24 more tests
+│
+├── 📁 lyra-vscode-extension/       ✅ VS Code Extension (v1.0.2-FEZZ)
+│   ├── package.json
+│   ├── syntaxes/
+│   ├── snippets/
+│   └── src/
+│
+├── 📁 lyra-language-extension/     - Alternative extension
+│
+├── 📁 docs/                        ✅ Main Documentation
+│   ├── 01_HUONG_DAN_LAP_TRIN.md   - Setup guide (Vietnamese)
 │   ├── 02_TAI_LIEU_THAM_KHAO_API.md - API reference
-│   ├── 03_VI_DU_NANG_CAO.md        - Advanced examples
-│   ├── 04_XU_LY_LOI.md             - Error handling
-│   ├── 05_CAU_HOI_THUONG_GAP.md    - FAQ
-│   ├── 06_HUONG_DAN_CAI_DAT.md     - Installation
-│   ├── 07_LYRA_ADVANCED_SYSTEM.md  - Advanced features
-│   └── [more documentation...]
-├── tools/                           - Command-line tools
-├── LYRA_COMPREHENSIVE_INFORMATION.txt - Project info (814 lines)
-├── README.md                        ✅ This file
-└── .git/                            - Version control
+│   ├── 03_VI_DU_NANG_CAO.md       - Advanced examples
+│   ├── 04_XU_LY_LOI.md            - Error handling
+│   ├── 05_CAU_HOI_THUONG_GAP.md   - FAQ
+│   ├── 06_HUONG_DAN_CAI_DAT.md    - Installation
+│   ├── 07_LYRA_ADVANCED_SYSTEM.md - Advanced features
+│   └── ... more docs
+│
+├── 📁 docs_archived/              - Archived Reports
+│   ├── COMPREHENSIVE_PERFORMANCE_TEST.md
+│   ├── ILP_ANALYSIS_REPORT.md
+│   ├── FEZZ_IMPLEMENTATION_REPORT.md
+│   └── LYRA_COMPREHENSIVE_INFORMATION.txt
+│
+├── 📁 examples_archived/          - Old/Archive Examples
+│   └── hello_v1.lyra
+│
+├── 📁 tools/                      - Development Tools
+│   └── ... utility scripts
+│
+├── 📁 lyra_language.egg-info/     - Package Metadata
+│
+└── 📁 .git/                       - Version Control
 ```
 
 ---

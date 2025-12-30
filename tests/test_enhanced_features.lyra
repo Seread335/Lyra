@@ -1,0 +1,106 @@
+// Test Arrays and Enhanced Features - v1.0.2-FEZZ
+// December 29, 2025
+// Comprehensive test of new Lyra language features
+
+// Test 1: Arrays
+println("=== Test 1: Arrays ===");
+var arr: [] = [1, 2, 3, 4, 5];
+println("Array:", arr);
+println("First element:", arr[0]);
+println("Third element:", arr[2]);
+
+// Test 2: String Operations
+println("\n=== Test 2: String Operations ===");
+var str1: str = "Hello";
+var str2: str = "World";
+var combined: str = str1 + " " + str2;
+println("Combined:", combined);
+println("Length:", len(combined));
+println("Uppercase:", toUpperCase(combined));
+
+// Test 3: For Loops
+println("\n=== Test 3: For Loops ===");
+print("Numbers 1-5: ");
+for i in 5 {
+    print(i);
+    print(" ");
+}
+println("");
+
+// Test 4: For Loop with Array
+println("\n=== Test 4: For Loop with Array ===");
+var numbers: [] = [10, 20, 30, 40, 50];
+for num in numbers {
+    println("Item:", num);
+}
+
+// Test 5: Break and Continue
+println("\n=== Test 5: Break and Continue ===");
+for i in 10 {
+    if i == 3 {
+        continue;
+    }
+    if i == 7 {
+        break;
+    }
+    print(i);
+    print(" ");
+}
+println("");
+
+// Test 6: String Methods
+println("\n=== Test 6: String Methods ===");
+var text: str = "Hello World";
+println("Contains 'World':", contains(text, "World"));
+println("StartsWith 'Hello':", startsWith(text, "Hello"));
+println("Substring [0,5]:", substring(text, 0, 5));
+
+// Test 7: Math Functions
+println("\n=== Test 7: Math Functions ===");
+println("Absolute value of -10:", abs(-10));
+println("Min of [5,2,8]:", min(5, 2, 8));
+println("Max of [5,2,8]:", max(5, 2, 8));
+println("Power 2^3:", pow(2, 3));
+
+// Test 8: Try-Catch
+println("\n=== Test 8: Try-Catch ===");
+try {
+    var x: i32 = 10;
+    var y: i32 = 0;
+    var z: i32 = x / y;
+    println("Result:", z);
+} catch (e) {
+    println("Caught error:", e);
+}
+
+// Test 9: Switch Statement
+println("\n=== Test 9: Switch Statement ===");
+var day: i32 = 3;
+switch day {
+    case 1:
+        println("Monday");
+        break;
+    case 2:
+        println("Tuesday");
+        break;
+    case 3:
+        println("Wednesday");
+        break;
+    default:
+        println("Other day");
+}
+
+// Test 10: Functions with Arrays
+println("\n=== Test 10: Functions with Arrays ===");
+proc printArray(arr: []) {
+    for item in arr {
+        print(item);
+        print(" ");
+    }
+    println("");
+}
+
+printArray([1, 2, 3, 4, 5]);
+printArray([10, 20, 30]);
+
+println("\n=== All Tests Complete ===");

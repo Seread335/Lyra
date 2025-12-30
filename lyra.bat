@@ -2,6 +2,7 @@
 REM ============================================================================
 REM LYRA INTERPRETER - Windows Launcher
 REM A working Lyra programming language interpreter
+REM Version 1.0.3
 REM ============================================================================
 
 setlocal enabledelayedexpansion
@@ -30,10 +31,13 @@ if "%1"=="" (
     echo.
     echo ╔════════════════════════════════════════════════════════╗
     echo ║           LYRA PROGRAMMING LANGUAGE                    ║
-    echo ║              Interpreter v1.0                          ║
+    echo ║        Interpreter v1.0.3-IRON_RULE                   ║
+    echo ║   Strict Error System with Zero Tolerance              ║
     echo ╚════════════════════════════════════════════════════════╝
     echo.
     echo Usage: lyra [file.lyra]
+    echo        lyra --help    (Show this help)
+    echo        lyra --version (Show version)
     echo.
     echo Examples:
     echo   lyra fibonacci_working.lyra    - Run Fibonacci example
@@ -47,10 +51,40 @@ if "%1"=="" (
     echo   - Logic: AND, OR, NOT
     echo   - Control Flow: if/else, while loops
     echo   - Built-in: print function
+    echo   - Error Handling: Try-catch blocks
+    echo   - Iron Rule: Strict error enforcement
     echo.
-) else (
-    REM Check if file exists
-    if not exist "%1" (
+) else if "%1"=="--version" (
+    REM Show version
+    echo Lyra Programming Language v1.0.3-IRON_RULE
+    echo With Iron Rule Strict Error System
+) else if "%1"=="--help" (
+    REM Show help (same as no arguments)
+    echo.
+    echo ╔════════════════════════════════════════════════════════╗
+    echo ║           LYRA PROGRAMMING LANGUAGE                    ║
+    echo ║        Interpreter v1.0.3-IRON_RULE                   ║
+    echo ║   Strict Error System with Zero Tolerance              ║
+    echo ╚════════════════════════════════════════════════════════╝
+    echo.
+    echo Usage: lyra [file.lyra]
+    echo        lyra --help    (Show this help)
+    echo        lyra --version (Show version)
+    echo.
+    echo Examples:
+    echo   lyra fibonacci_working.lyra    - Run Fibonacci example
+    echo   lyra prime_checker.lyra        - Run Prime checker
+    echo   lyra sum_numbers.lyra          - Run Sum calculation
+    echo.
+    echo Lyra Features:
+    echo   - Variables: var x: i32 = 10;
+    echo   - Arithmetic: +, -, *, /, %%
+    echo   - Comparison: ==, !=, ^<, ^>, ^<=, ^>=
+    echo   - Logic: AND, OR, NOT
+    echo   - Control Flow: if/else, while loops
+    echo   - Built-in: print function
+    echo   - Error Handling: Try-catch blocks
+    echo   - Iron Rule: Strict error enforcement
         echo Error: File not found: %1
         exit /b 1
     )

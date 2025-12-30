@@ -1,6 +1,11 @@
-print("========== LYRA COMPREHENSIVE PROBLEM SOLVER ==========");
+// ================================================================================
+// TEST: Comprehensive Problem Solver - Lyra v1.0.2-FEZZ
+// Date: December 29, 2025
+// ================================================================================
 
-# Problem 1: Prime Checker
+print("========== LYRA COMPREHENSIVE PROBLEM SOLVER (v1.0.2-FEZZ) ==========");
+
+// Problem 1: Prime Checker
 proc is_prime(n: i32) -> i32 {
     if n < 2 { return 0; }
     var i: i32 = 2;

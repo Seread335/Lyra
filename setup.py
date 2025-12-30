@@ -18,7 +18,7 @@ if os.path.exists("requirements.txt"):
 
 setup(
     name="lyra-language",
-    version="1.0.1",
+    version="1.0.3",
     author="Seread335",
     author_email="seread335@gmail.com",
     description="Lyra Programming Language - A modern, efficient language interpreter",

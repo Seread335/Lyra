@@ -2,7 +2,7 @@
   "name": "lyra-language-support",
   "displayName": "Lyra Programming Language",
   "description": "Complete language support for Lyra programming language with syntax highlighting, code snippets, and run capabilities",
-  "version": "1.0.1",
+  "version": "1.0.2-FEZZ",
   "publisher": "Seread",
   "engines": {
     "vscode": "^1.84.0"
@@ -36,9 +36,6 @@
   "author": "Lyra Development Team",
   "maintainers": ["Seread"],
   "readmeFilename": "README.md",
-  "activationEvents": [
-    "onLanguage:lyra"
-  ],
   "main": "./dist/extension.js",
   "contributes": {
     "languages": [

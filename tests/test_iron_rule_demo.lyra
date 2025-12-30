@@ -1,0 +1,33 @@
+// LYRA IRON RULE - Demonstration of Zero Tolerance System
+// This file shows various errors that violate the Iron Rule
+
+// TEST 1: Implicit Type Conversion (FORBIDDEN)
+// This will trigger ImplicitTypeConversionError
+println("Price: " + 100);  // ERROR: Cannot concat string + number
+
+// TEST 2: Uninitialized Variable (FORBIDDEN)
+var x;  // ERROR: Variable must have initial value
+
+// TEST 3: Shadowing (FORBIDDEN)
+proc test_shadowing() {
+    var name: string = "Alice";
+    {
+        var name: string = "Bob";  // ERROR: Shadows parent scope
+    }
+}
+
+// TEST 4: Unused Variable (FORBIDDEN)
+var unused_value: i32 = 42;  // ERROR: Declared but never used
+
+// TEST 5: Dead Code (FORBIDDEN)
+proc test_dead_code() {
+    return 10;
+    println("This will never run");  // ERROR: Dead code after return
+}
+
+// TEST 6: Division by Zero (PANIC)
+try {
+    result = 100 / 0;  // Will trigger DivisionByZeroError
+} catch (e) {
+    println("Cannot catch this in strict mode");
+}

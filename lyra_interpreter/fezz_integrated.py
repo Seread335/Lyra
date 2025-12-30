@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 LYRA INTERPRETER WITH FEZZ OPTIMIZATION
-Version: 1.0.2-FEZZ
+Version: 1.0.3
 Integrates FEZZ execution engine for 2-3x performance improvement
 """
 

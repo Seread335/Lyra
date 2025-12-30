@@ -1,4 +1,4 @@
-# Quick Start Guide - Lyra Programming Language
+# Quick Start Guide - Lyra Programming Language v1.0.2-FEZZ
 
 Get started with Lyra in 5 minutes! ⚡
 
@@ -86,18 +86,37 @@ while i < 5 {
 
 ## Run Examples (1 minute)
 
+### Main Demo Programs
+```bash
+# Comprehensive 10-problem solver
+lyra examples_main\hello.lyra
+
+# Performance benchmarks
+lyra examples_main\perf_benchmark.lyra
+
+# FEZZ engine analysis
+lyra examples_main\fezz_analysis.lyra
+```
+
+### Built-in Examples
 ```bash
 # Fibonacci sequence
-lyra lyra_interpreter/examples/fibonacci.lyra
+lyra lyra_interpreter\examples\fibonacci_working.lyra
 
 # Check if number is prime
-lyra lyra_interpreter/examples/prime_checker.lyra
+lyra lyra_interpreter\examples\prime_checker.lyra
 
-# Sum numbers 1-100
-lyra lyra_interpreter/examples/sum_numbers.lyra
+# Simple arithmetic
+lyra lyra_interpreter\examples\simple_arithmetic.lyra
+```
 
-# Multiplication table
-lyra lyra_interpreter/examples/multiplication_table.lyra
+### Run All Tests
+```bash
+# Windows - run all tests
+for /r tests %f in (*.lyra) do lyra "%f"
+
+# Or run individual test
+lyra tests\test_gcd.lyra
 ```
 
 ---

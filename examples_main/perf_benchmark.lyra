@@ -1,6 +1,10 @@
-# Performance Benchmark Tests for Lyra
+// ================================================================================
+// LYRA PERFORMANCE BENCHMARK TESTS - v1.0.2-FEZZ
+// Date: December 29, 2025
+// Description: Comprehensive performance benchmarking suite
+// ================================================================================
 
-# Test 1: Prime Checking Performance
+// Test 1: Prime Checking Performance
 proc is_prime(n: i32) -> i32 {
     if n < 2 { return 0; }
     var i: i32 = 2;
@@ -11,7 +15,7 @@ proc is_prime(n: i32) -> i32 {
     return 1;
 }
 
-print("=== Performance Benchmark Tests ===");
+print("=== Performance Benchmark Tests (v1.0.2-FEZZ) ===");
 print("Test 1: Prime Number Checking");
 let prime_count: i32 = 0;
 var p: i32 = 2;
@@ -23,7 +27,7 @@ while p <= 100 {
 print("Primes from 2-100:");
 print(prime_count);
 
-# Test 2: Fibonacci Performance (smaller number)
+// Test 2: Fibonacci Performance (smaller number)
 proc fib(n: i32) -> i32 {
     if n <= 1 { return n; }
     return fib(n - 1) + fib(n - 2);
@@ -34,7 +38,7 @@ let fib_result: i32 = fib(20);
 print("fib(20) =");
 print(fib_result);
 
-# Test 3: Factorial Chain
+// Test 3: Factorial Chain
 proc fact(n: i32) -> i32 {
     if n <= 1 { return 1; }
     return n * fact(n - 1);
@@ -51,7 +55,7 @@ while f <= 10 {
     f = f + 1;
 }
 
-# Test 4: Loop Performance
+// Test 4: Loop Performance
 print("Test 4: Loop Performance (count to 100)");
 var counter: i32 = 0;
 var i: i32 = 0;
@@ -62,7 +66,7 @@ while i < 100 {
 print("Completed 100 iterations");
 print(counter);
 
-# Test 5: Recursive Depth Test
+// Test 5: Recursive Depth Test
 proc depth_test(n: i32) -> i32 {
     if n <= 0 { return 1; }
     return 1 + depth_test(n - 1);

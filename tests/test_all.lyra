@@ -1,4 +1,10 @@
-print("Test 1");
+// ================================================================================
+// COMPREHENSIVE TEST SUITE - Lyra v1.0.2-FEZZ
+// Date: December 29, 2025
+// Description: Tests all core language features
+// ================================================================================
+
+print("Test 1: Basic Print");
 
 proc is_prime(n: i32) -> i32 {
     if n < 2 {
@@ -14,7 +20,7 @@ proc is_prime(n: i32) -> i32 {
     return 1;
 }
 
-print("Test 2");
+print("Test 2: Prime Function Defined");
 
 proc factorial(n: i32) -> i32 {
     if n <= 1 {
@@ -23,7 +29,7 @@ proc factorial(n: i32) -> i32 {
     return n * factorial(n - 1);
 }
 
-print("Test 3");
+print("Test 3: Factorial Function Defined");
 
 proc gcd(a: i32, b: i32) -> i32 {
     if b == 0 {

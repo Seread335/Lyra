@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
 """
 FEZZ EXECUTION ENGINE - Optimization Module for Lyra Interpreter
-Version: 1.0
+Version: 1.0.3
 Purpose: Implement superscalar, out-of-order execution optimizations
 Target: 2-3x performance improvement (IPC 1.9-3.1)
 """
 
-import sys
 from typing import List, Dict, Set, Tuple, Any
 from enum import Enum
 
@@ -46,7 +45,7 @@ class FezzInstruction:
 class DependencyAnalyzer:
     """Analyzes dependencies between instructions"""
     
-    def __init__(self):
+    def __init__(self) -> None:
         self.dependencies: Dict[int, List[Tuple[int, DependencyType]]] = {}
     
     def analyze(self, instructions: List[FezzInstruction]) -> Dict[int, List[Tuple[int, DependencyType]]]:
@@ -54,7 +53,7 @@ class DependencyAnalyzer:
         Find dependencies between instructions
         Returns: dependencies[i] = [(j, type), ...] where i depends on j
         """
-        deps = {}
+        deps: Dict[int, List[Tuple[int, DependencyType]]] = {}
         
         for i in range(len(instructions)):
             deps[i] = []
@@ -159,12 +158,11 @@ class SuperscalarExecutor:
     def _find_independent_groups(self, instructions: List[FezzInstruction], 
                                 deps: Dict[int, List[Tuple[int, DependencyType]]]) -> List[List[int]]:
         """Find groups of independent instructions that can execute in parallel"""
-        groups = []
-        issued = set()
+        groups: List[List[int]] = []
+        issued: Set[int] = set()
         
         while len(issued) < len(instructions):
-            current_group = []
-            current_group_vars = set()  # Variables used in current group
+            current_group: List[int] = []
             
             # Try to find up to ISSUE_WIDTH independent instructions
             for i in range(len(instructions)):
@@ -184,10 +182,10 @@ class SuperscalarExecutor:
                 if can_issue:
                     # WAW and WAR within group are harder, check them
                     for prev_instr in current_group:
-                        if instructions[i].writes & instructions[prev_instr].reads:
+                        if bool(instructions[i].writes & instructions[prev_instr].reads):
                             can_issue = False
                             break
-                        if instructions[i].writes & instructions[prev_instr].writes:
+                        if bool(instructions[i].writes & instructions[prev_instr].writes):
                             can_issue = False
                             break
                 
@@ -231,9 +229,9 @@ class SuperscalarExecutor:
 class FezzOptimizer:
     """Main FEZZ optimizer class"""
     
-    def __init__(self):
+    def __init__(self) -> None:
         self.executor = SuperscalarExecutor()
-        self.stats = {}
+        self.stats: Dict[str, Any] = {}
     
     def optimize_ast(self, ast: Any) -> Tuple[Any, Dict[str, Any]]:
         """
@@ -264,11 +262,11 @@ class FezzOptimizer:
     def _extract_instructions(self, ast: Any) -> List[FezzInstruction]:
         """Extract FezzInstructions from AST (simplified)"""
         # This is a simplified version - real version would traverse AST
-        return []
+        return []  # type: ignore
     
     def get_stats(self) -> Dict[str, Any]:
         """Get optimization statistics"""
-        return self.stats
+        return self.stats  # type: ignore
 
 # Helper function to create instructions from expressions
 def create_instruction_from_expr(expr: str, reads: Set[str], writes: Set[str]) -> FezzInstruction:
@@ -293,6 +291,49 @@ def create_instruction_from_expr(expr: str, reads: Set[str], writes: Set[str]) -
     
     return FezzInstruction(instr_type, expr, reads, writes, latency)
 
+# Loop Unrolling Optimizer
+class LoopUnrollingOptimizer:
+    """Implements loop unrolling to reduce iteration overhead"""
+    
+    def __init__(self, unroll_factor: int = 4) -> None:
+        self.unroll_factor = unroll_factor  # 2x, 4x, etc
+        self.unrolled_loops: Dict[str, int] = {}
+    
+    def should_unroll(self, loop_instructions: List[FezzInstruction], iterations: int) -> bool:
+        """Determine if loop should be unrolled"""
+        # Unroll if: loop body is small (<20 instructions) and iterations are many (>100)
+        return len(loop_instructions) < 20 and iterations > 100
+    
+    def unroll_loop(self, instructions: List[FezzInstruction], unroll_times: int = 4) -> List[FezzInstruction]:
+        """
+        Unroll loop instructions by duplicating body N times
+        Reduces loop condition checks from N to N/unroll_times
+        """
+        unrolled: List[FezzInstruction] = []
+        
+        for _ in range(unroll_times):
+            for instr in instructions:
+                # Duplicate instruction with modified reads/writes for clarity
+                new_reads = set(instr.reads)
+                new_writes = set(instr.writes)
+                unrolled.append(FezzInstruction(
+                    instr.type,
+                    instr.operation,
+                    new_reads,
+                    new_writes,
+                    instr.latency
+                ))
+        
+        return unrolled
+    
+    def estimate_speedup(self, original_count: int, unroll_factor: int) -> float:
+        """Estimate speedup from unrolling"""
+        # Unrolling reduces loop overhead but increases code size
+        # Estimated speedup: 1 + (overhead% / 100) * (unroll_factor - 1) / unroll_factor
+        loop_overhead_percent = 0.15  # ~15% of loop time is control overhead
+        speedup = 1.0 + (loop_overhead_percent * (unroll_factor - 1) / unroll_factor)
+        return speedup
+
 # Performance tracking
 class PerformanceMonitor:
     """Track FEZZ performance metrics during execution"""
@@ -304,6 +345,8 @@ class PerformanceMonitor:
         self.cache_misses = 0
         self.branch_predictions = 0
         self.branch_mispredictions = 0
+        self.loops_unrolled = 0
+        self.unrolling_speedup = 1.0
     
     def report(self) -> Dict[str, Any]:
         """Generate performance report"""
@@ -317,5 +360,7 @@ class PerformanceMonitor:
             'ipc': ipc,
             'cache_hit_rate': cache_hit_rate,
             'branch_prediction_accuracy': branch_accuracy,
+            'loops_unrolled': self.loops_unrolled,
+            'unrolling_speedup': self.unrolling_speedup,
             'speedup_vs_baseline': ipc / 1.0
         }

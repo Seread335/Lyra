@@ -1,0 +1,103 @@
+# ILP (Instruction-Level Parallelism) Demonstration
+// Test to show how many independent instructions can execute in parallel
+
+// Test 1: Independent arithmetic operations
+proc test_independent_ops() {
+    var a: i32 = 10
+    var b: i32 = 20
+    var c: i32 = 30
+    var d: i32 = 40
+    
+    // These are all independent - can execute in parallel
+    a = a + 5
+    b = b * 2
+    c = c - 3
+    d = d / 2
+    
+    print a
+    print b
+    print c
+    print d
+}
+
+// Test 2: Dependent operations
+proc test_dependent_ops() {
+    var x: i32 = 5
+    
+    // These depend on each other - must execute sequentially
+    x = x + 10    // x = 15
+    x = x * 2     // x = 30
+    x = x - 5     // x = 25
+    
+    print x
+}
+
+// Test 3: Loop with independent iterations
+proc test_loop_parallelism() {
+    var i: i32 = 1
+    var result: i32 = 0
+    
+    while i <= 10 {
+        result = result + i * i
+        i = i + 1
+    }
+    
+    print result
+}
+
+// Test 4: Function calls with ILP
+proc simple_add(x: i32, y: i32) {
+    return x + y
+}
+
+proc test_function_ilp() {
+    var r1: i32 = simple_add(10, 20)
+    var r2: i32 = simple_add(30, 40)
+    var r3: i32 = simple_add(50, 60)
+    
+    print r1
+    print r2
+    print r3
+}
+
+// Test 5: Complex expression with ILP potential
+proc test_complex_expr() {
+    var x: i32 = 5
+    var y: i32 = 10
+    var z: i32 = 15
+    
+    // Multiple independent calculations
+    var result1: i32 = x * y + z
+    var result2: i32 = x + y * z
+    var result3: i32 = (x + y) * z
+    
+    print result1
+    print result2
+    print result3
+}
+
+// Main execution
+print "=== ILP DEMONSTRATION ==="
+print ""
+
+print "Test 1: Independent Operations (High ILP potential)"
+test_independent_ops()
+print ""
+
+print "Test 2: Dependent Operations (Sequential)"
+test_dependent_ops()
+print ""
+
+print "Test 3: Loop Parallelism"
+test_loop_parallelism()
+print ""
+
+print "Test 4: Function Call ILP"
+test_function_ilp()
+print ""
+
+print "Test 5: Complex Expressions"
+test_complex_expr()
+print ""
+
+print "=== ILP TEST COMPLETE ==="

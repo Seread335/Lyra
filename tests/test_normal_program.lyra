@@ -1,0 +1,16 @@
+// Normal program without errors
+println("=== Normal Program ===");
+
+x = 10;
+y = 20;
+z = x + y;
+println("Sum:", z);
+
+arr = [1, 2, 3, 4, 5];
+println("Array length:", arr.length);
+
+for i in range(3) {
+    println("Index", i, ":", arr[i]);
+}
+
+println("Done!");
