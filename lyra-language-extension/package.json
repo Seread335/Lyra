@@ -2,7 +2,7 @@
   "name": "lyra-language",
   "displayName": "Lyra Language Support",
   "description": "Syntax highlighting and language support for the Lyra programming language",
-  "version": "1.0.0",
+  "version": "1.0.3",
   "publisher": "lyra",
   "icon": "images/icon.png",
   "engines": {
@@ -64,6 +64,6 @@
     "language",
     "interpreter"
   ],
-  "author": "Lyra Development Team",
+  "author": "Seread335",
   "license": "MIT"
 }

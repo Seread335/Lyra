@@ -2,7 +2,7 @@
   "name": "lyra-language-support",
   "displayName": "Lyra Programming Language",
   "description": "Complete language support for Lyra programming language with syntax highlighting, code snippets, and run capabilities",
-  "version": "1.0.2-FEZZ",
+  "version": "1.0.3",
   "publisher": "Seread",
   "engines": {
     "vscode": "^1.84.0"
@@ -33,7 +33,7 @@
     "url": "https://github.com/yourusername/lyra-vscode/issues"
   },
   "license": "MIT",
-  "author": "Lyra Development Team",
+  "author": "Seread335",
   "maintainers": ["Seread"],
   "readmeFilename": "README.md",
   "main": "./dist/extension.js",

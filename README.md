@@ -1,6 +1,7 @@
 # LYRA PROGRAMMING LANGUAGE - COMPLETE PROJECT
 
-**Version**: 1.0.2-FEZZ  
+**Version**: 1.0.3  
+**Author**: Seread335  
 **Status**: ✅ Production Ready  
 **Last Updated**: December 29, 2025  
 **GitHub**: [Seread335/Lyra](https://github.com/Seread335/Lyra)

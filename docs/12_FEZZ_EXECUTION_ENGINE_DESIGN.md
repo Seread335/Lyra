@@ -1,9 +1,9 @@
 # FEZZ EXECUTION ENGINE - DETAILED DESIGN SPECIFICATION
 
-**Version:** 1.0  
+**Version:** 1.0.3  
 **Target IPC:** 1.9 - 3.1  
 **Status:** Production Ready  
-**Author:** Lyra Performance Team  
+**Author:** Seread335  
 **Date:** December 28, 2025
 
 ---

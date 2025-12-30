@@ -1,7 +1,8 @@
 # FEZZ OPTIMIZATION STRATEGY - DETAILED TECHNICAL GUIDE
 
 **Date:** December 28, 2025  
-**Version:** 1.0 - Production  
+**Version:** 1.0.3 - Production  
+**Author:** Seread335  
 **Target:** IPC 1.9-3.1 for Lyra Language
 
 ---
